@@ -1,20 +1,25 @@
 # Wayfinder Implement Orchestrator
 
-一个个人 Codex skill，用来总控 Matt Pocock skills 主流程里的多 session 开发链路：
+[中文说明](README.zh-CN.md)
+
+A personal Codex skill for orchestrating the Matt Pocock skills multi-session
+delivery flow:
 
 ```text
 /wayfinder discovery -> proof gate -> /to-prd -> /to-issues
 -> issue-level /implement child threads -> integration -> summary MR
 ```
 
-它是薄编排器，不替代 `/wayfinder`、`/to-prd`、`/to-issues`、`/implement` 或 `/code-review`。
+It is a thin orchestrator. It does not replace `/wayfinder`, `/to-prd`,
+`/to-issues`, `/implement`, or `/code-review`.
 
 ## Hard Dependency
 
 This skill is tightly coupled to the
 [`mattpocock-skills:ask-matt`](https://github.com/mattpocock/skills) framework shape.
 
-它假设目标机器已经安装 Matt Pocock skills 的 engineering flow，并且这些 skills 可以被 Codex 调用：
+It assumes the target machine already has the Matt Pocock engineering flow
+installed and callable by Codex:
 
 - `ask-matt`
 - `wayfinder`
@@ -24,7 +29,9 @@ This skill is tightly coupled to the
 - `code-review`
 - `writing-great-skills`
 
-`ask-matt` 定义的是 idea -> ship 主路由；本 skill 只是在这个路由进入多 issue、多 fresh session、MR 汇总时，负责阶段门禁、子线程派发、监控和结果收敛。
+`ask-matt` defines the idea-to-ship route. This skill only coordinates the part
+where that route becomes multiple issues, multiple fresh sessions, and one final
+MR.
 
 ## Install
 
@@ -34,13 +41,14 @@ cd wayfinder-implement-orchestrator
 ./scripts/install.sh
 ```
 
-默认安装到：
+Default install target:
 
 ```bash
 ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 ```
 
-如果你还没安装 Matt Pocock skills，installer 会失败。临时跳过依赖检查：
+If Matt Pocock skills are not installed yet, the installer fails. To skip the
+dependency check:
 
 ```bash
 ./scripts/install.sh --skip-deps-check
@@ -48,7 +56,7 @@ ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 
 ## Use
 
-在 Codex 里显式调用：
+Invoke it explicitly in Codex:
 
 ```text
 Use $wayfinder-implement-orchestrator with docs/decision-maps/my-map.md.
@@ -69,7 +77,8 @@ scripts/install.sh
 scripts/validate.py
 ```
 
-`skill-bundle.json` is the package truth: name, entrypoint, install target, and required external skills.
+`skill-bundle.json` is the package truth: name, entrypoint, install target, and
+required external skills.
 
 ## Verify
 
@@ -86,4 +95,6 @@ The validator checks:
 
 ## Boundary
 
-This is Codex-oriented. It expects Codex thread tools such as `create_thread`, `read_thread`, `send_message_to_thread`, and `automation_update` when running the orchestration path.
+This is Codex-oriented. It expects Codex thread tools such as `create_thread`,
+`read_thread`, `send_message_to_thread`, and `automation_update` when running
+the orchestration path.
