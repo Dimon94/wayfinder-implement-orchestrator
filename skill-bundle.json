@@ -1,0 +1,45 @@
+{
+  "format": "single-codex-skill/v1",
+  "name": "wayfinder-implement-orchestrator",
+  "entrypoint": "skills/wayfinder-implement-orchestrator/SKILL.md",
+  "install": {
+    "codexSkillDirectory": "skills/wayfinder-implement-orchestrator"
+  },
+  "requires": [
+    {
+      "name": "ask-matt",
+      "source": "mattpocock-skills",
+      "reason": "Router and vocabulary for the idea-to-ship engineering flow."
+    },
+    {
+      "name": "wayfinder",
+      "source": "mattpocock-skills",
+      "reason": "Discovery maps and research/prototype tickets."
+    },
+    {
+      "name": "to-prd",
+      "source": "mattpocock-skills",
+      "reason": "PRD synthesis gate."
+    },
+    {
+      "name": "to-issues",
+      "source": "mattpocock-skills",
+      "reason": "Tracer-bullet issue split gate."
+    },
+    {
+      "name": "implement",
+      "source": "mattpocock-skills",
+      "reason": "Issue-level implementation sessions."
+    },
+    {
+      "name": "code-review",
+      "source": "mattpocock-skills",
+      "reason": "Pre-commit Standards and Spec review."
+    },
+    {
+      "name": "writing-great-skills",
+      "source": "mattpocock-skills",
+      "reason": "Skill authoring constraints."
+    }
+  ]
+}
