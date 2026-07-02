@@ -24,5 +24,9 @@ Stop the frontier loop when:
 - a child reports `ask-user`, `blocked`, or `Unknown`;
 - two child sessions edited the same ticket or left conflicting map state.
 
+For non-judgement tickets, copy-paste child prompts are only a fallback when
+`create_thread` or project targeting is unavailable. With Codex thread tools
+available, create the fresh sessions directly.
+
 The parent owns new thread creation. A `/wayfinder` child may output its normal
 Next steps block, but it must not open descendant sessions itself.

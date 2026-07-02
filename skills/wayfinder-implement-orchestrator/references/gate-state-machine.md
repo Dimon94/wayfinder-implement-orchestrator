@@ -31,6 +31,10 @@ Run them through `wayfinder-frontier-loop.md`. When a ticket resolves, update
 the map with the answer and artifact link; do not copy the full artifact into
 the map.
 
+If the map has unblocked `Research`, `Prototype`, or automatable `Task` tickets
+and no row in the table says to stop for user judgement, dispatch those tickets
+in the same turn. Do not end by asking the user to copy-paste child prompts.
+
 ## Implementation Batch
 
 Dispatch a batch only when every issue in it is:

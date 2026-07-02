@@ -6,15 +6,17 @@ disable-model-invocation: true
 
 # Wayfinder Implement Orchestrator
 
-Use this only when the user invokes it with an existing wayfinder map or an
-already-approved PRD/issues set. It coordinates the chain; it does not replace
-`/wayfinder`, `/to-prd`, `/to-issues`, or `/implement`.
+Use this only when the user invokes it with a wayfinder map, a loose idea that
+should become a wayfinder map, or an already-approved PRD/issues set. It
+coordinates the chain; it does not replace `/wayfinder`, `/to-prd`,
+`/to-issues`, or `/implement`.
 
 ## Start
 
-1. Read the whole wayfinder map, the repo instructions nearest the work, and
-   any referenced research/prototype artifacts. Completion: every current
-   source coordinate is known or marked `Unknown`.
+1. Read or create the smallest wayfinder map, the repo instructions nearest the
+   work, and any referenced research/prototype artifacts. Completion: every
+   current source coordinate is known or marked `Unknown`, and every unblocked
+   discovery ticket is known.
 2. Load `references/gate-state-machine.md`. Completion: the current gate,
    source of truth, and next gate are identified.
 3. Load `references/fresh-session-boundaries.md`. Completion: every executable
@@ -58,6 +60,9 @@ already-approved PRD/issues set. It coordinates the chain; it does not replace
 - Do not continuously read child threads. Dispatch, create a 5 minute reminder
   automation, stop the active loop, and inspect child progress only on wake-up
   or child handoff.
+- An unblocked discovery frontier is executable work, not a user prompt. Create
+  child threads automatically unless a stop condition or missing tool prevents
+  dispatch.
 - `create_thread` is not enough. Before monitoring, read each child once and
   confirm it has started from the dispatch prompt; empty/interrupted children
   are not dispatched.
