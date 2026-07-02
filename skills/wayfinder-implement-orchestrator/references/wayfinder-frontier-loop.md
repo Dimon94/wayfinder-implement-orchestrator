@@ -18,7 +18,9 @@ Stop the frontier loop when:
 
 - the map has enough proof for PRD synthesis;
 - the next unblocked ticket is `Grilling` or otherwise needs live user
-  judgement;
+  judgement; load `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`, emit one
+  filled copy-paste prompt for a fresh user-run thread, then wait for the
+  returned handoff before continuing;
 - a child reports `ask-user`, `blocked`, or `Unknown`;
 - two child sessions edited the same ticket or left conflicting map state.
 

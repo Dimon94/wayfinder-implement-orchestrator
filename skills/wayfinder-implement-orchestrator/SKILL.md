@@ -26,14 +26,18 @@ already-approved PRD/issues set. It coordinates the chain; it does not replace
    `references/wayfinder-frontier-loop.md` and
    `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`. Completion: one packet can be
    filled per ticket without relying on chat memory.
-6. If dispatching implementation issues, load
+6. If the next discovery ticket is `Grilling` or needs live judgement, load
+   `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`. Completion: one copy-paste
+   prompt lets the user run the grilling in a fresh thread and return the
+   result to this parent thread.
+7. If dispatching implementation issues, load
    `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`. Completion: one packet can be
    filled per issue without relying on chat memory.
-7. If child threads are running, load `references/child-monitoring.md`.
+8. If child threads are running, load `references/child-monitoring.md`.
    Completion: each child passed startup probe, then a 5 minute automation
    reminder exists, or missing automation support is reported with manual check
    coordinates.
-8. If closing out a summary MR, load
+9. If closing out a summary MR, load
    `references/mr-closeout-checklist.md`. Completion: all child results,
    commits, checks, issue links, CI/CD, and review-agent verdicts are mapped.
 
