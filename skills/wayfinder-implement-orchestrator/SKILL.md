@@ -63,6 +63,8 @@ coordinates the chain; it does not replace `/wayfinder`, `/to-prd`,
 - An unblocked discovery frontier is executable work, not a user prompt. Create
   child threads automatically unless a stop condition or missing tool prevents
   dispatch.
+- If the source worktree is not a creatable project target, use the fallback in
+  `references/fresh-session-boundaries.md` and report it once.
 - `create_thread` is not enough. Before monitoring, read each child once and
   confirm it has started from the dispatch prompt; empty/interrupted children
   are not dispatched.

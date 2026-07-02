@@ -44,9 +44,19 @@ any work item whose acceptance criteria cannot be checked from durable sources.
 Use `GATE_CHILD_DISPATCH_PACKET.md` for PRD, issue-splitting, review, and
 evidence-gathering children.
 
-## Unregistered Proof Worktree
+## Unregistered Worktree Targeting
 
-If the source map or research artifacts live in a worktree that `list_projects`
-cannot target, create the child in the nearest registered project and pass the
-absolute source paths as read-only coordinates. The child must not mutate that
-unregistered worktree unless the parent explicitly allows it.
+If the source map or artifacts live in a worktree that `list_projects` cannot
+target, create the child in the nearest registered project. This is not a user
+stop by itself.
+
+Record two coordinate sets:
+
+- Execution target: the registered project/worktree used to create the thread.
+- External coordinates: absolute map, proof, and artifact paths from the source
+  worktree.
+
+External coordinates are read-only unless the packet names a write target. For
+discovery tickets, the only allowed external writes are the map ticket block and
+listed artifact paths. Report this fallback to the user in one line; do not end
+with manual copy-paste instructions when thread tools are available.

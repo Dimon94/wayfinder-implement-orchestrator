@@ -11,6 +11,8 @@ Ticket slug:
 Ticket type: Research | Prototype | Task
 Base branch:
 Base commit:
+Execution target:
+Source worktree:
 
 Route:
 - Invoke /wayfinder with the map and this ticket slug.
@@ -26,6 +28,10 @@ Allowed scope:
 - Artifact paths:
 - Out of scope:
 
+External write targets:
+- Map ticket block:
+- Artifact paths:
+
 Execution rules:
 - Use a fresh session.
 - Claim the ticket before work if the map still marks it open.
@@ -35,6 +41,9 @@ Execution rules:
 - Do not enter `/implement`.
 - If the ticket requires human judgement, stop and report the question.
 - Link artifacts from the map; do not paste full artifacts into the map.
+- If `Execution target` differs from `Source worktree`, mutate only the
+  external write targets listed above; all other source-worktree paths are
+  read-only.
 - Put the full final report in this child thread's final answer.
 - If `send_message_to_thread` is available, send the parent orchestrator thread
   a compact handoff after the final report is ready.
@@ -45,6 +54,8 @@ Ticket:
 Status: resolved | blocked
 Thread:
 Worktree:
+Execution target:
+Source worktree:
 Branch:
 Commit: <hash subject> | none
 Parent handoff: sent | unavailable | failed <reason>
