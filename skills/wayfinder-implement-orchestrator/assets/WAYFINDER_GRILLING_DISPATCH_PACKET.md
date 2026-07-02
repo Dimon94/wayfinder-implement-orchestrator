@@ -1,8 +1,9 @@
-# Wayfinder Grilling Dispatch Packet
+# Wayfinder Grilling Session Dispatch Packet
 
 Fill this packet when a wayfinder map reaches an unblocked `Grilling` ticket
-or any discovery ticket that needs live user judgement. Give it to the user as
-one copy-paste prompt for a fresh Codex thread.
+or any discovery ticket that needs live user judgement. One Grilling ticket gets
+one fresh user-run thread for the whole grilling session, not one thread per
+question.
 
 ```text
 Project:
@@ -11,13 +12,21 @@ Wayfinder map:
 Ticket slug:
 Base branch:
 Base commit:
+Grilling objective:
+Decision branches to resolve:
+-
 
 Route:
 - Invoke /wayfinder with the map and this ticket slug.
 - Resolve only this ticket.
-- Use /grilling and /domain-modeling.
-- Ask one question at a time and wait for user feedback.
+- Use /grilling as a continuous session and /domain-modeling when terminology
+  needs to be pinned down.
+- Ask one question at a time and wait for user feedback, then continue with the
+  next dependent question until the ticket is resolved or blocked.
 - Provide your recommended answer with each question.
+- Do not return to the parent after the first answer.
+- If a question can be answered by exploring the codebase or linked artifacts,
+  explore instead of asking the user.
 
 Source of truth:
 - Map: <path>
@@ -30,7 +39,8 @@ Allowed scope:
 - Out of scope:
 
 Return to parent:
-- After the grilling ticket is resolved or blocked, discover `send_message_to_thread`.
+- Only after the whole grilling ticket is resolved or blocked, discover
+  `send_message_to_thread`.
 - If available, send the compact parent handoff below to the parent orchestrator thread.
 - If unavailable, put the compact parent handoff in the final answer for the user to paste back.
 

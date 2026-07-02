@@ -30,8 +30,8 @@ coordinates the chain; it does not replace `/wayfinder`, `/to-prd`,
    filled per ticket without relying on chat memory.
 6. If the next discovery ticket is `Grilling` or needs live judgement, load
    `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`. Completion: one copy-paste
-   prompt lets the user run the grilling in a fresh thread and return the
-   result to this parent thread.
+   prompt lets the user run the whole grilling session in a fresh thread and
+   return the result to this parent thread.
 7. If dispatching implementation issues, load
    `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`. Completion: one packet can be
    filled per issue without relying on chat memory.
