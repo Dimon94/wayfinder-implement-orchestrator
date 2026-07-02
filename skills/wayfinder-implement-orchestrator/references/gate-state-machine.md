@@ -1,59 +1,55 @@
-# Gate State Machine
+# 门禁状态机
 
-Read this after `SKILL.md` step 2.
+在 `SKILL.md` 第 2 步之后读取本文件。
 
-## Gates
+## 门禁
 
-| Gate | Source of truth | Pass condition | Stop for user |
+| Gate | 真相源 | 通过条件 | 何时停下问用户 |
 | --- | --- | --- | --- |
-| `discovery` | Wayfinder map | Required research/prototype tickets are resolved and linked artifacts exist | Any unresolved product, architecture, access, or risk choice |
-| `proof` | Map answers plus linked artifacts | Evidence supports a PRD without hidden assumptions | Missing, contradictory, or stale proof |
-| `prd` | Published PRD issue/doc | User-approved seams and scope are captured | Seam approval, scope tradeoff, or tracker failure |
-| `issues` | Published tracker issues | Approved vertical slices have real issue IDs, read-back bodies, and dependencies | Split/merge/dependency judgement or partial publish |
-| `dispatch` | Tracker issues | Ready issues have no blocking dependencies or mutable-resource conflicts | Ambiguous issue set, overlapping files/resources, missing base branch |
-| `collect` | 5 minute automation wake-up, child thread readback | Each child reports status, commit if changed, checks, dirty state, touched files | Blocked/off-scope child or missing final report |
-| `integrate` | Git commits on integration branch | Child commit is inspected, clean, in-scope, and focused checks pass after integration | Conflict, scope drift, failed check |
-| `mr` | Remote MR, CI/CD status, review-agent comments | MR links PRD/issues/child threads/commits/checks/risks, CI/CD passes, and the review Agent says the MR can pass | Push/open-MR authority is unclear, CI/CD fails, valid/Unknown review rejection, or unresolved review-Agent mistake |
+| `discovery` | Wayfinder map | 必要 research/prototype tickets 已 resolved，且 linked artifacts 存在 | 任何未解决的 product、architecture、access 或 risk choice |
+| `proof` | Map answers 加 linked artifacts | 证据支持 PRD，且没有隐藏假设 | proof 缺失、冲突或 stale |
+| `prd` | 已发布 PRD issue/doc | 已捕获用户批准的 seams 和 scope | Seam approval、scope tradeoff 或 tracker failure |
+| `issues` | 已发布 tracker issues | 已批准 vertical slices 有真实 issue IDs、read-back bodies 和 dependencies | Split/merge/dependency judgement 或 partial publish |
+| `dispatch` | Tracker issues | Ready issues 没有 blocking dependencies 或 mutable-resource conflicts | issue set 模糊、files/resources 重叠、缺少 base branch |
+| `collect` | 5 分钟 automation wake-up、child thread readback | 每个 child 报告 status、commit if changed、checks、dirty state、touched files | child blocked/off-scope 或缺少 final report |
+| `integrate` | integration branch 上的 Git commits | child commit 已检查、clean、in-scope，且 integration 后 focused checks 通过 | conflict、scope drift、failed check |
+| `mr` | Remote MR、CI/CD status、review-agent comments | MR 链接 PRD/issues/child threads/commits/checks/risks，CI/CD 通过，且 review Agent 说 MR can pass | Push/open-MR 权限不清晰、CI/CD 失败、valid/Unknown review rejection，或未解决的 review-Agent mistake |
 
-## Flow
+## 流程
 
 ```text
 discovery -> proof -> prd -> issues -> dispatch -> collect -> integrate -> mr
 ```
 
-Do not skip a gate. If a gate cannot be proven, either run the smallest
-missing predecessor step or stop for user judgement.
+不要跳过门禁。如果某个门禁无法证明，要么运行最小缺失前置步骤，要么停下来让用户判断。
 
 ## Discovery Tickets
 
-Research and prototype tickets belong to `/wayfinder`, not `/implement`.
-Run them through `wayfinder-frontier-loop.md`. When a ticket resolves, update
-the map with the answer and artifact link; do not copy the full artifact into
-the map.
+Research 和 prototype tickets 属于 `/wayfinder`，不属于 `/implement`。通过
+`wayfinder-frontier-loop.md` 执行它们。ticket resolved 后，把 answer 和 artifact
+link 更新进 map；不要把完整 artifact 复制进 map。
 
-If the map has unblocked `Research`, `Prototype`, or automatable `Task` tickets
-and no row in the table says to stop for user judgement, dispatch those tickets
-in the same turn. Do not end by asking the user to copy-paste child prompts.
+如果 map 里有未阻塞的 `Research`、`Prototype` 或可自动执行的 `Task` tickets，且表格
+没有要求停下问用户，就在同一轮派发这些 tickets。不要以“让用户复制粘贴 child
+prompts”结束。
 
 ## Implementation Batch
 
-Dispatch a batch only when every issue in it is:
+只有当 batch 内每个 issue 都满足以下条件时，才派发 batch：
 
-- published in the tracker;
-- unblocked by dependencies or already satisfied prerequisites;
-- sized for one fresh `/implement` session;
-- independent from siblings in files, migrations, locks, external resources, or
-  release ordering;
-- clear enough that acceptance criteria can be verified without parent chat
-  memory.
+- 已发布到 tracker；
+- 没有 dependency 阻塞，或 prerequisites 已满足；
+- 大小适合一个 fresh `/implement` session；
+- 在 files、migrations、locks、external resources 或 release ordering 上与 sibling
+  独立；
+- 足够清晰，acceptance criteria 不需要父线程聊天记忆也能验证。
 
-If any condition is `Unknown`, remove that issue from the batch or ask the user.
-Create one `/implement` child per remaining issue in the same dispatch turn,
-then monitor the whole batch with one heartbeat.
+如果任何条件是 `Unknown`，把该 issue 从 batch 移除，或询问用户。在同一个 dispatch
+turn 中为剩余每个 issue 创建一个 `/implement` child，然后用一个 heartbeat 监控整个
+batch。
 
-## Context Budget
+## 上下文预算
 
-After dispatch, do not keep a continuous parent-thread reasoning loop open.
-Use the 5 minute reminder in `child-monitoring.md`; each wake-up reads only the
-compact status needed to decide whether a child is still running, blocked, or
-ready for the next gate.
+派发后，不要让父线程持续推理循环保持打开。使用 `child-monitoring.md` 里的 5 分钟
+reminder；每次 wake-up 只读取判断 child 是 still running、blocked，还是 ready for
+the next gate 所需的紧凑状态。

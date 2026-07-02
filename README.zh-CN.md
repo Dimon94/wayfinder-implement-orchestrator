@@ -53,9 +53,9 @@ ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 在 Codex 里显式调用：
 
 ```text
-Use $wayfinder-implement-orchestrator with docs/decision-maps/my-map.md.
-Run research/prototype tickets first, then PRD/issues, then parallel
-issue-level /implement child threads, then one summary MR.
+使用 $wayfinder-implement-orchestrator 处理 docs/decision-maps/my-map.md。
+先跑 research/prototype tickets，再进入 PRD/issues，然后并行派发 issue-level
+/implement child threads，最后汇总到一个 summary MR。
 ```
 
 ## Bundle 格式

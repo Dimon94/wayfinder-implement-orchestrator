@@ -1,62 +1,56 @@
-# Fresh Session Boundaries
+# Fresh Session 边界
 
-Read this before dispatching any executable work.
+派发任何可执行工作前读取本文件。
 
-## Fresh By Default
+## 默认 Fresh
 
-- Wayfinder `Research`, `Prototype`, and automatable `Task` tickets: one fresh
-  `/wayfinder` child session per ticket slug.
-- Wayfinder follow-up tickets discovered by a child: reread the map, then let
-  the parent dispatch the next fresh sessions; children do not open descendants.
-- PRD synthesis: use a fresh `/to-prd` session to draft or publish from map
-  proof when the seams are already approved; otherwise the child returns the
-  seam proposal and the parent asks the user.
-- Issue splitting: use a fresh `/to-issues` session to draft or publish from the
-  approved PRD; the parent asks the user before publishing if the split is not
-  already approved.
-- Implementation: one fresh `/implement` child session per tracker issue.
-- Integrated review: use a fresh read-only `/code-review` or repo-native review
-  child after parent integration when available.
-- Remote CI/CD or review-agent fixes: convert each code-changing fix into a
-  tracker issue or explicit parent-approved micro-issue, then dispatch a fresh
-  `/implement` child.
-- Disputed review-agent comments: use a fresh read-only child for evidence
-  gathering when the verdict is non-obvious, then the parent posts the MR
-  rebuttal/adaptation note.
+- Wayfinder `Research`、`Prototype` 和可自动执行的 `Task` tickets：每个 ticket
+  slug 一个 fresh `/wayfinder` child session。
+- child 发现的 Wayfinder follow-up tickets：父线程重读 map，然后派发下一批 fresh
+  sessions；children 不打开后代线程。
+- PRD synthesis：当 seams 已批准时，用 fresh `/to-prd` session 基于 map proof
+  起草或发布；否则 child 返回 seam proposal，由父线程问用户。
+- Issue splitting：基于已批准 PRD，用 fresh `/to-issues` session 起草或发布；
+  如果 split 尚未批准，父线程先问用户再发布。
+- Implementation：每个 tracker issue 一个 fresh `/implement` child session。
+- Integrated review：父线程集成后，在可用时使用 fresh read-only `/code-review`
+  或 repo-native review child。
+- Remote CI/CD 或 review-agent fixes：把每个需要改代码的 fix 转成 tracker issue，
+  或父线程明确批准的 micro-issue，再派发 fresh `/implement` child。
+- 有争议的 review-agent comments：如果 verdict 不明显，用 fresh read-only child
+  收集证据，然后父线程发布 MR rebuttal/adaptation note。
 
-## Parent-Owned
+## 父线程持有
 
-- Human judgement gates and user questions.
-- Deciding which child batch is safe to dispatch.
-- `create_thread`, `automation_update`, and child coordinate records.
-- Wayfinder frontier selection and next-round dispatch.
-- Integration branch cherry-picks, conflict resolution, and MR push/open/update.
-- MR comments, review-agent rebuttals, and final remote-gate completion.
+- Human judgement gates 和 user questions。
+- 判断哪个 child batch 可以安全派发。
+- `create_thread`、`automation_update` 和 child coordinate records。
+- Wayfinder frontier selection 和下一轮 dispatch。
+- Integration branch cherry-picks、conflict resolution，以及 MR push/open/update。
+- MR comments、review-agent rebuttals，以及 final remote-gate completion。
 
-## Stop Instead
+## 应该停止
 
-Do not create a child thread for live user grilling, unresolved product choices,
-unclear issue splits, overlapping mutable resources, missing source truth, or
-any work item whose acceptance criteria cannot be checked from durable sources.
+不要为 live user grilling、未解决的 product choices、不清晰的 issue splits、
+重叠 mutable resources、缺失 source truth，或任何无法从持久真相源验证验收标准的
+work item 创建 child thread。
 
-## Minimal Child Prompt
+## 最小 Child Prompt
 
-Use `GATE_CHILD_DISPATCH_PACKET.md` for PRD, issue-splitting, review, and
-evidence-gathering children.
+PRD、issue-splitting、review 和 evidence-gathering children 使用
+`GATE_CHILD_DISPATCH_PACKET.md`。
 
-## Unregistered Worktree Targeting
+## 未注册 Worktree Targeting
 
-If the source map or artifacts live in a worktree that `list_projects` cannot
-target, create the child in the nearest registered project. This is not a user
-stop by itself.
+如果 source map 或 artifacts 位于 `list_projects` 无法 target 的 worktree，就在最近的
+已注册 project 创建 child。这件事本身不是 user stop。
 
-Record two coordinate sets:
+记录两组坐标：
 
-- Execution target: the registered project/worktree used to create the thread.
-- External coordinates: absolute map, proof, and artifact paths from the source
-  worktree.
+- Execution target：用于创建线程的已注册 project/worktree。
+- External coordinates：source worktree 里的绝对 map、proof 和 artifact paths。
 
-External coordinates are read-only unless the packet names a write target. For
-discovery tickets, the only allowed external writes are the map ticket block and
-listed artifact paths. Report this fallback to the user in one line; do not end
-with manual copy-paste instructions when thread tools are available.
+除非 packet 明确列出 write target，否则 external coordinates 都是只读。对 discovery
+tickets，唯一允许的 external writes 是 map ticket block 和列出的 artifact paths。
+用一行向用户报告这个 fallback；当 thread tools 可用时，不要以手动 copy-paste
+instructions 结束。

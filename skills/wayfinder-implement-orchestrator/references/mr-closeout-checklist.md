@@ -1,79 +1,71 @@
-# MR Closeout Checklist
+# MR 收尾清单
 
-Read this only when all required issue children are terminal or explicitly out
-of scope.
+只有当所有必要 issue children 已 terminal，或已明确 out of scope 时才读取本文件。
 
 ## Child Result Audit
 
-- Read each child thread with `read_thread`; do not trust a notification alone.
-- Confirm final report fields: issue, status, worktree, branch, commit,
-  verification, dirty state, touched files, blockers, recommendation.
-- Inspect each commit before integration: `git show --stat --oneline <hash>` and
-  a focused diff.
-- Reject commits with unrelated files, missing verification, dirty worktree, or
-  a blocker hidden as success.
+- 用 `read_thread` 读取每个 child thread；不要只相信 notification。
+- 确认 final report 字段：issue、status、worktree、branch、commit、verification、
+  dirty state、touched files、blockers、recommendation。
+- 集成前检查每个 commit：`git show --stat --oneline <hash>` 和 focused diff。
+- 拒绝包含无关文件、缺失验证、dirty worktree，或把 blocker 包装成 success 的 commits。
 
 ## Integration Audit
 
-- Cherry-pick or otherwise integrate only verified child commits into the
-  integration branch.
-- After every integrated child, run that issue's focused verification.
-- After the batch, run the smallest whole-change check that proves the PRD.
-- Run `/code-review` or the repo-native review gate before remote submission.
-- If the review skill cannot spawn sub-agents in this session, run the same
-  Standards and Spec diff review in-thread and record the fallback in the MR
-  evidence.
+- 只把已验证 child commits cherry-pick 或以其他方式集成到 integration branch。
+- 每集成一个 child 后，运行该 issue 的 focused verification。
+- batch 完成后，运行能证明 PRD 的最小 whole-change check。
+- remote submission 前运行 `/code-review` 或 repo-native review gate。
+- 如果 review skill 无法在当前 session spawn sub-agents，就在本线程运行同等的
+  Standards 和 Spec diff review，并把 fallback 记录到 MR evidence。
 
 ## Summary MR Body
 
-Include:
+包含：
 
-- PRD link.
-- Implemented issue links.
-- Child thread IDs.
-- Integrated commits.
-- Verification commands and results.
-- Blocked or skipped issues with reasons.
-- Known residual risk.
+- PRD link。
+- 已实现 issue links。
+- Child thread IDs。
+- Integrated commits。
+- Verification commands and results。
+- 被 blocked 或 skipped 的 issues，以及原因。
+- 已知 residual risk。
 
-Ask before push/open/update if the user did not already authorize remote action.
+如果用户尚未授权 remote action，push/open/update 前先问。
 
 ## Remote Pass Gate
 
-- After opening or updating the MR, read remote CI/CD status from the tracker or
-  host API.
-- Read MR comments for the automated review Agent verdict.
-- Treat `pending`, missing, failed, or ambiguous CI/CD as not complete.
-- Treat review-agent requests, failures, or absent verdict as not complete.
-- Finish only when CI/CD passes and the review Agent explicitly says the MR can
-  pass.
+- 打开或更新 MR 后，从 tracker 或 host API 读取 remote CI/CD status。
+- 读取 MR comments，确认 automated review Agent verdict。
+- `pending`、missing、failed 或 ambiguous CI/CD 都不算完成。
+- review-agent requests、failures 或 absent verdict 都不算完成。
+- 只有 CI/CD 通过，且 review Agent 明确说 MR can pass，才算完成。
 
 ## Review-Agent Mistake
 
-For each blocking review-agent comment:
+对每个 blocking review-agent comment：
 
-1. Classify it as `valid`, `invalid`, or `Unknown` from code, tests, artifacts,
-   and MR diff evidence.
-2. If `valid`, fix or dispatch a follow-up issue before completion.
-3. If `Unknown`, ask the user or gather the smallest missing evidence.
-4. If `invalid`, reply in the MR with a concise rebuttal and direct evidence.
-5. In the MR, leave an adaptation note recording why the review likely fired and
-   what future review-agent behavior should change.
+1. 基于 code、tests、artifacts 和 MR diff evidence，把它分类为 `valid`、`invalid`
+   或 `Unknown`。
+2. 如果是 `valid`，完成前先修复或派发 follow-up issue。
+3. 如果是 `Unknown`，询问用户或收集最小缺失证据。
+4. 如果是 `invalid`，在 MR 里用简短反驳和直接证据回复。
+5. 在 MR 里留下 adaptation note，记录为什么可能触发该 review，以及未来
+   review-agent behavior 应如何改变。
 
-Use this comment shape for invalid reviews:
+对 invalid review 使用这个中文评论形状：
 
 ```text
-Review-agent rebuttal:
-- Comment: <link or quote the claim briefly>
-- Verdict: invalid
-- Evidence: <file/test/artifact/API result>
-- Reason: <why the claim does not apply>
+Review-agent 反驳：
+- 评论：<link 或简短引用该 claim>
+- 结论：invalid
+- 证据：<file/test/artifact/API result>
+- 原因：<为什么该 claim 不适用>
 
-Review-agent adaptation note:
-- Likely trigger: <pattern, missing context, stale assumption, or heuristic>
-- Desired future behavior: <specific rule the review Agent should learn>
+Review-agent 适配记录：
+- 可能触发原因：<pattern, missing context, stale assumption, or heuristic>
+- 期望后续行为：<review Agent 应该学习的具体规则>
 ```
 
-Do not mark the MR complete after a rebuttal alone. Completion still requires a
-passing review-agent verdict, or explicit user direction to stop with an
-unresolved remote-gate risk.
+不要因为已经反驳就把 MR 标为完成。完成仍要求 passing review-agent verdict，或用户
+明确指示带着 unresolved remote-gate risk 停止。

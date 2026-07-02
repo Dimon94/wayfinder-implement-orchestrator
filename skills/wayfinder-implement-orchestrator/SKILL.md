@@ -6,105 +6,97 @@ disable-model-invocation: true
 
 # Wayfinder Implement Orchestrator
 
-Use this only when the user invokes it with a wayfinder map, a loose idea that
-should become a wayfinder map, or an already-approved PRD/issues set. It
-coordinates the chain; it does not replace `/wayfinder`, `/to-prd`,
-`/to-issues`, or `/implement`.
+只有当用户用 wayfinder map、需要变成 wayfinder map 的松散想法，或已批准的
+PRD/issues 集合调用时，才使用本 skill。它只负责编排链路；不替代
+`/wayfinder`、`/to-prd`、`/to-issues` 或 `/implement`。
 
-## Start
+## 启动
 
-1. Read or create the smallest wayfinder map, the repo instructions nearest the
-   work, and any referenced research/prototype artifacts. Completion: every
-   current source coordinate is known or marked `Unknown`, and every unblocked
-   discovery ticket is known.
-2. Load `references/gate-state-machine.md`. Completion: the current gate,
-   source of truth, and next gate are identified.
-3. Load `references/fresh-session-boundaries.md`. Completion: every executable
-   work item is classified as fresh child, parent-owned gate, or user stop.
-4. If dispatching PRD, issue-splitting, review, or evidence-gathering gate
-   children, load `assets/GATE_CHILD_DISPATCH_PACKET.md`. Completion: one gate
-   packet can be filled without relying on chat memory.
-5. If dispatching discovery tickets, load
+1. 读取或创建最小 wayfinder map、离工作最近的 repo instructions，以及任何已引用
+   的 research/prototype artifacts。完成标准：每个当前真相源坐标都已知道或标为
+   `Unknown`，每个未阻塞 discovery ticket 都已知道。
+2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
+   下一门禁。
+3. 加载 `references/fresh-session-boundaries.md`。完成标准：每个可执行 work item
+   都已分类为 fresh child、parent-owned gate 或 user stop。
+4. 如果要派发 PRD、issue 拆分、review 或 evidence-gathering gate child，加载
+   `assets/GATE_CHILD_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆填写一个
+   gate packet。
+5. 如果要派发 discovery tickets，加载
    `references/wayfinder-frontier-loop.md` and
-   `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`. Completion: one packet can be
-   filled per ticket without relying on chat memory.
-6. If the next discovery ticket is `Grilling` or needs live judgement, load
-   `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`. Completion: one copy-paste
-   prompt lets the user run the whole grilling session in a fresh thread and
-   return the result to this parent thread.
-7. If dispatching implementation issues, load
-   `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`. Completion: one packet can be
-   filled per issue without relying on chat memory.
-8. If child threads are running, load `references/child-monitoring.md`.
-   Completion: each child passed startup probe, then a 5 minute automation
-   reminder exists, or missing automation support is reported with manual check
-   coordinates.
-9. If closing out a summary MR, load
-   `references/mr-closeout-checklist.md`. Completion: all child results,
-   commits, checks, issue links, CI/CD, and review-agent verdicts are mapped.
+   `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
+   ticket 填写一个 packet。
+6. 如果下一个 discovery ticket 是 `Grilling` 或需要实时判断，加载
+   `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`。完成标准：一个 copy-paste
+   prompt 能让用户在 fresh thread 跑完整拷问会话，并把结果带回父线程。
+7. 如果要派发 implementation issues，加载
+   `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
+   issue 填写一个 packet。
+8. 如果 child threads 正在运行，加载 `references/child-monitoring.md`。完成标准：
+   每个 child 都通过 startup probe，然后存在 5 分钟 automation reminder；如果缺少
+   automation 支持，就报告手动检查坐标。
+9. 如果要收尾 summary MR，加载 `references/mr-closeout-checklist.md`。完成标准：
+   所有 child results、commits、checks、issue links、CI/CD 和 review-agent verdicts
+   都已映射。
 
-## Rules
+## 规则
 
-- Keep one source of truth per gate: wayfinder map for discovery, PRD issue for
-  product scope, tracker issues for implementation slices, child thread
-  readback plus Git commits for execution, MR for final review.
-- Ask the user only at judgement gates: unresolved discovery choice, PRD seam
-  approval, issue split approval, ambiguous dispatch batch, failed integration,
-  remote action not already authorized, valid review-agent rejection, or
-  `Unknown` review-agent rejection.
-- A summary MR is not done when opened. It is done only when remote CI/CD passes
-  and the remote review Agent comments that the MR can pass.
-- If the review Agent is wrong, rebut it in an MR comment with evidence, then
-  leave a second note explaining why the review likely happened and what the
-  review Agent should learn.
-- Do not continuously read child threads. Dispatch, create a 5 minute reminder
-  automation, stop the active loop, and inspect child progress only on wake-up
-  or child handoff.
-- An unblocked discovery frontier is executable work, not a user prompt. Create
-  child threads automatically unless a stop condition or missing tool prevents
-  dispatch.
-- If the source worktree is not a creatable project target, use the fallback in
-  `references/fresh-session-boundaries.md` and report it once.
-- `create_thread` is not enough. Before monitoring, read each child once and
-  confirm it has started from the dispatch prompt; empty/interrupted children
-  are not dispatched.
-- Prefer fresh sessions for bounded execution. The parent owns gates, user
-  questions, integration, remote comments, and MR authority.
-- Dispatch only issue-level `/implement` work as child Codex threads. One issue
-  gets one fresh session. Do not dispatch loose TODOs, layers, workstreams, or
-  research/prototype tickets as implementation children.
-- If several implementation issues pass the same dispatch batch, create all of
-  their child threads before the heartbeat; do not serialize independent issues.
-- Use Codex thread tools when available: discover `create_thread`,
+- 所有面向用户、子线程、heartbeat、handoff 和 MR comment 的自然语言都用中文。
+  skill 名、tool 名、状态枚举、路径、分支名、commit hash 和代码字面量保持原样。
+- 每个门禁只保留一个真相源：discovery 用 wayfinder map，product scope 用 PRD
+  issue，implementation slices 用 tracker issues，execution 用 child thread readback
+  加 Git commits，final review 用 MR。
+- 只在判断门禁问用户：未解决的 discovery choice、PRD seam approval、issue split
+  approval、模糊 dispatch batch、integration 失败、未授权 remote action、有效的
+  review-agent rejection，或 `Unknown` review-agent rejection。
+- Summary MR 打开不等于完成。只有 remote CI/CD 通过，且远程 review Agent 评论说
+  MR can pass，才算完成。
+- 如果 review Agent 错了，在 MR 评论里用证据反驳，然后再留一条记录解释为什么可能
+  触发该 review，以及 review Agent 应该学习什么。
+- 不要持续读取 child threads。派发后创建 5 分钟 reminder automation，停止主动循环，
+  只在 wake-up 或 child handoff 时检查进度。
+- 未阻塞的 discovery frontier 是可执行工作，不是用户 prompt。除非有停止条件或缺少
+  工具阻止派发，否则自动创建 child threads。
+- 如果 source worktree 不是可创建线程的 project target，使用
+  `references/fresh-session-boundaries.md` 里的 fallback，并只报告一次。
+- 只有 `create_thread` 不够。进入监控前，读取每个 child 一次，确认它已经从 dispatch
+  prompt 启动；空线程或 interrupted 线程不算已派发。
+- bounded execution 优先用 fresh sessions。父线程拥有 gates、user questions、
+  integration、remote comments 和 MR authority。
+- 只把 issue-level `/implement` 工作派发为 child Codex threads。一个 issue 一个
+  fresh session。不要把 loose TODOs、layers、workstreams 或 research/prototype
+  tickets 当作 implementation children 派发。
+- 如果多个 implementation issues 属于同一可派发 batch，先创建所有 child threads，
+  再创建 heartbeat；不要串行化彼此独立的 issues。
+- Codex thread tools 可用时就使用：发现 `create_thread`、
   `list_threads`, `read_thread`, `send_message_to_thread`, and
-  `automation_update`; if unavailable, stop with manual child-session
-  coordinates instead of pretending parallel dispatch happened.
-- Do not invoke or copy the cc-dev workflow. Its child-thread mechanics are a
-  reference only; this skill has its own gates and no `task.md` contract.
+  `automation_update`；如果不可用，带着手动 child-session 坐标停止，不要假装已经
+  并行派发。
+- 不要调用或复制 cc-dev workflow。它的 child-thread mechanics 只作参考；本 skill
+  有自己的 gates，且没有 `task.md` contract。
 
-## Minimal Example
+## 最小示例
 
-User says:
+用户说：
 
 ```text
-Use $wayfinder-implement-orchestrator with docs/wayfinder/payment-map.md.
-Run research/prototype tickets first, then PRD/issues, then parallel
-issue-level /implement threads, then one summary MR.
+使用 $wayfinder-implement-orchestrator 处理 docs/wayfinder/payment-map.md。
+先跑 research/prototype tickets，再进入 PRD/issues，然后并行派发 issue-level
+/implement threads，最后汇总到一个 summary MR。
 ```
 
-Run:
+执行：
 
-1. Run the wayfinder frontier loop: dispatch open unblocked discovery tickets
-   as fresh `/wayfinder` sessions, reread the map after each round, and repeat
-   until the map has enough proof for a PRD or needs user judgement.
-2. Stop if the map exposes a human product or architecture choice; otherwise
-   run the proof gate.
-3. Use a fresh PRD synthesis session where it is bounded; stop in the parent
-   for the seam approval `/to-prd` requires; publish the PRD.
-4. Use a fresh issue-splitting session where it is bounded; stop in the parent
-   for issue split approval; publish dependency-ordered issues.
-5. Dispatch ready issues in parallel with one filled issue packet per
-   `/implement` child thread.
-6. Create the 5 minute child-progress reminder; on wake-up, read terminal child
-   reports, integrate verified commits, run focused and whole-change checks,
-   open or update one summary MR, then wait for CI/CD and review-agent approval.
+1. 运行 wayfinder frontier loop：把 open 且未阻塞的 discovery tickets 派发成
+   fresh `/wayfinder` sessions；每轮结束重读 map；重复直到 map 有足够证据进入 PRD，
+   或需要用户判断。
+2. 如果 map 暴露人为 product 或 architecture choice，停止；否则运行 proof gate。
+3. 在边界清晰时使用 fresh PRD synthesis session；遇到 `/to-prd` 需要的 seam
+   approval 时回到父线程停止；然后发布 PRD。
+4. 在边界清晰时使用 fresh issue-splitting session；遇到 issue split approval
+   时回到父线程停止；然后按依赖顺序发布 issues。
+5. 对 ready issues 并行派发，每个 `/implement` child thread 一个填好的 issue
+   packet。
+6. 创建 5 分钟 child-progress reminder；wake-up 时读取 terminal child reports，
+   集成已验证 commits，运行 focused 和 whole-change checks，打开或更新一个 summary
+   MR，然后等待 CI/CD 和 review-agent approval。
