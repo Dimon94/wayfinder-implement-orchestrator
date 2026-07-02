@@ -6,32 +6,33 @@
 
 | Gate | 真相源 | 通过条件 | 何时停下问用户 |
 | --- | --- | --- | --- |
-| `discovery` | Wayfinder map | 必要 research/prototype tickets 已 resolved，且 linked artifacts 存在 | 任何未解决的 product、architecture、access 或 risk choice |
-| `proof` | Map answers 加 linked artifacts | 证据支持 PRD，且没有隐藏假设 | proof 缺失、冲突或 stale |
+| `discovery` | Wayfinder map issue 和 child issue frontier | 必要 research/prototype/task child issues 已 closed，resolution comments 和必要 linked artifacts 存在 | 任何未解决的 product、architecture、access 或 risk choice |
+| `proof` | Closed child issue resolutions 加 linked artifacts | 证据支持 PRD，且没有隐藏假设 | proof 缺失、冲突或 stale |
 | `prd` | 已发布 PRD issue/doc | 已捕获用户批准的 seams 和 scope；旧 tracker candidate overlap 已记录但未误判为 duplicate | Seam approval、scope tradeoff、精确 duplicate、或 tracker failure |
 | `issues` | 已发布 tracker issues | 已批准 vertical slices 有真实 issue IDs、read-back bodies 和 dependencies；duplicate 只按当前 PRD 父项判断 | Split/merge/dependency judgement、当前 PRD 下的 duplicate、或 partial publish |
 | `dispatch` | Tracker issues | Ready issues 没有 blocking dependencies 或 mutable-resource conflicts | issue set 模糊、files/resources 重叠、缺少 base branch |
 | `collect` | 5 分钟 automation wake-up、child thread readback | 每个 child 报告 status、commit if changed、checks、dirty state、touched files | child blocked/off-scope 或缺少 final report |
 | `integrate` | integration branch 上的 Git commits | child commit 已检查、clean、in-scope，且 integration 后 focused checks 通过 | conflict、scope drift、failed check |
-| `mr` | Remote MR、CI/CD status、review-agent comments | MR 链接 PRD/issues/child threads/commits/checks/risks，CI/CD 通过，且 review Agent 说 MR can pass | Push/open-MR 权限不清晰、CI/CD 失败、valid/Unknown review rejection，或未解决的 review-Agent mistake |
+| `remote-review` | GitHub PR 或 GitLab MR、CI/CD status、review-agent comments | PR/MR 链接 PRD/issues/child threads/commits/checks/risks，CI/CD 通过，且 review Agent 说 PR/MR can pass | Push/open PR/MR 权限不清晰、CI/CD 失败、valid/Unknown review rejection，或未解决的 review-Agent mistake |
 
 ## 流程
 
 ```text
-discovery -> proof -> prd -> issues -> dispatch -> collect -> integrate -> mr
+discovery -> proof -> prd -> issues -> dispatch -> collect -> integrate -> remote-review
 ```
 
 不要跳过门禁。如果某个门禁无法证明，要么运行最小缺失前置步骤，要么停下来让用户判断。
 
 ## Discovery Tickets
 
-Research 和 prototype tickets 属于 `/wayfinder`，不属于 `/implement`。通过
-`wayfinder-frontier-loop.md` 执行它们。ticket resolved 后，把 answer 和 artifact
-link 更新进 map；不要把完整 artifact 复制进 map。
+Research、prototype 和 task child issues 属于 `/wayfinder`，不属于 `/implement`。
+通过 `wayfinder-frontier-loop.md` 执行它们。ticket resolved 后，把 answer 写成
+resolution comment，close ticket，把 artifact link 留在 ticket，并给 map
+Decisions-so-far 追加 title link + gist；不要把完整 answer 或 artifact 复制进 map。
 
-如果 map 里有未阻塞的 `Research`、`Prototype` 或可自动执行的 `Task` tickets，且表格
-没有要求停下问用户，就在同一轮派发这些 tickets。不要以“让用户复制粘贴 child
-prompts”结束。
+如果 frontier query 返回未阻塞且未 claimed 的 `wayfinder:research`、
+`wayfinder:prototype` 或可自动执行的 `wayfinder:task` child issues，且表格没有要求
+停下问用户，就在同一轮派发这些 tickets。不要以“让用户复制粘贴 child prompts”结束。
 
 ## Implementation Batch
 

@@ -6,7 +6,7 @@
 
 ```text
 /wayfinder discovery -> proof gate -> /to-prd -> /to-issues
--> issue-level /implement child threads -> integration -> summary MR
+-> issue-level /implement child threads -> integration -> summary PR/MR
 ```
 
 它是薄编排器，不替代 `/wayfinder`、`/to-prd`、`/to-issues`、`/implement` 或 `/code-review`。
@@ -26,7 +26,7 @@
 - `code-review`
 - `writing-great-skills`
 
-`ask-matt` 定义的是 idea -> ship 主路由；本 skill 只是在这个路由进入多 issue、多 fresh session、MR 汇总时，负责阶段门禁、子线程派发、监控和结果收敛。
+`ask-matt` 定义的是 idea -> ship 主路由；本 skill 只是在这个路由进入多 issue、多 fresh session、GitHub PR 或 GitLab MR 汇总时，负责阶段门禁、子线程派发、监控和结果收敛。
 
 ## 安装
 
@@ -53,9 +53,9 @@ ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 在 Codex 里显式调用：
 
 ```text
-使用 $wayfinder-implement-orchestrator 处理 docs/decision-maps/my-map.md。
-先跑 research/prototype tickets，再进入 PRD/issues，然后并行派发 issue-level
-/implement child threads，最后汇总到一个 summary MR。
+使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
+先跑 research/prototype/task tickets，再进入 PRD/issues，然后并行派发 issue-level
+/implement child threads，最后汇总到一个 summary PR/MR。
 ```
 
 ## Bundle 格式

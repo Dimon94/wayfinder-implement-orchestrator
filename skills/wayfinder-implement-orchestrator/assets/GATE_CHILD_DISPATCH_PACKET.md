@@ -12,7 +12,7 @@
 基线提交：
 
 真相源坐标：
-- Wayfinder map：
+- Wayfinder map issue：
 - PRD：
 - Tracker issues：
 - Research/prototype artifacts：
@@ -36,7 +36,7 @@
 
 `prd` 和 `issues` 门禁的 tracker 发布保护：
 - 创建 issue 前，先搜索/读取 tracker。先用当前批准 PRD/slice 的精确标题、关键
-  acceptance code literals、父 PRD URL/ID、source map/artifact 名称做精确搜索；
+  acceptance code literals、父 PRD URL/ID、source map issue/artifact 名称做精确搜索；
   再用宽关键词做候选搜索。
 - 只有同时满足这些条件，才算 duplicate 并停止：同一个门禁类型、同一个当前批准
   PRD 或同一个 slice、相同 acceptance/禁止范围，并且 tracker body 明确指向当前
@@ -63,7 +63,7 @@
 - 使用 fresh session。
 - 不要再派发子线程。
 - 不要进入 `/implement`。
-- 不要集成、push、打开/更新 MR，也不要评论 MR。
+- 不要集成、push、打开/更新 PR/MR，也不要评论 PR/MR。
 - 在本子线程 final answer 中输出完整 final report。
 - 如果 `send_message_to_thread` 可用，final report 准备好之后，向父编排线程
   发送一个紧凑 handoff。
@@ -85,7 +85,7 @@ Duplicate/candidate decision：
 - <exact duplicate | candidate overlap | none, ids/urls, reason>
 阻塞：
 -
-下一门禁建议：prd | issues | dispatch | integrate | mr | ask-user | blocked
+下一门禁建议：prd | issues | dispatch | integrate | remote-review | ask-user | blocked
 
 父线程 handoff message：
 门禁：

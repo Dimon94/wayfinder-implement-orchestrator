@@ -7,7 +7,7 @@ delivery flow:
 
 ```text
 /wayfinder discovery -> proof gate -> /to-prd -> /to-issues
--> issue-level /implement child threads -> integration -> summary MR
+-> issue-level /implement child threads -> integration -> summary PR/MR
 ```
 
 It is a thin orchestrator. It does not replace `/wayfinder`, `/to-prd`,
@@ -31,7 +31,7 @@ installed and callable by Codex:
 
 `ask-matt` defines the idea-to-ship route. This skill only coordinates the part
 where that route becomes multiple issues, multiple fresh sessions, and one final
-MR.
+GitHub PR or GitLab MR.
 
 ## Install
 
@@ -59,9 +59,9 @@ dependency check:
 Invoke it explicitly in Codex:
 
 ```text
-Use $wayfinder-implement-orchestrator with docs/decision-maps/my-map.md.
-Run research/prototype tickets first, then PRD/issues, then parallel
-issue-level /implement child threads, then one summary MR.
+Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
+Run research/prototype/task tickets first, then PRD/issues, then parallel
+issue-level /implement child threads, then one summary PR/MR.
 ```
 
 ## Bundle Format

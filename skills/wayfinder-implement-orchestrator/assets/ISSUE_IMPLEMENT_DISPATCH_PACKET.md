@@ -16,7 +16,7 @@ Tracker URL：
 真相源：
 - PRD：<id/url>
 - Issue：<id/url>
-- Wayfinder map/proof：<path/url>
+- Wayfinder proof：<map issue URL, closed ticket links, artifact paths>
 
 路由：
 - 调用 /implement。
@@ -56,7 +56,7 @@ Review gate：
 执行规则：
 - 使用 fresh session，并使用自己的 worktree/branch。
 - 不要创建 sibling child threads。
-- 不要集成、cherry-pick、push、打开 MR、关闭 tracker issue，或标记 sibling
+- 不要集成、cherry-pick、push、打开 PR/MR、关闭 tracker issue，或标记 sibling
   work complete。
 - 如果 issue 被阻塞，或验收标准是错的，停止并报告 blocker，不要扩大范围。
 - 在本子线程 final answer 中输出完整 final report。

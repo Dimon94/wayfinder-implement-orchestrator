@@ -44,7 +44,7 @@ heartbeat prompt 必须使用中文，并包含：
 - 不做 full-log summaries 的规则；
 - 只有已验证的 terminal child reports 才能推进门禁的规则；
 - child-to-parent handoff 只是唤醒提示，child final report 才是证据源的规则；
-- final MR remote-gate 完成后删除 heartbeat 的规则。
+- final PR/MR remote-gate 完成后删除 heartbeat 的规则。
 
 ## 唤醒检查
 
@@ -66,8 +66,8 @@ heartbeat prompt 必须使用中文，并包含：
 8. 如果 completed，读取 child final report，确认 parent handoff 字段，然后把该
    work item 推进到下一门禁。
 9. 不要把完整 child logs 总结进父线程上下文。
-10. 当所有 work item 都已推进，且 MR remote gate 完成后，用 `automation_update`
+10. 当所有 work item 都已推进，且 PR/MR remote gate 完成后，用 `automation_update`
     删除 heartbeat。
 
-如果上下文被压缩，从真相源重建：wayfinder map、PRD、tracker issues、child
-final reports、Git commits 和 MR state。不要相信父线程聊天记忆里的状态。
+如果上下文被压缩，从真相源重建：wayfinder map issue、child issues、PRD、tracker
+issues、child final reports、Git commits 和 PR/MR state。不要相信父线程聊天记忆里的状态。

@@ -1,4 +1,4 @@
-# MR 收尾清单
+# PR/MR 收尾清单
 
 只有当所有必要 issue children 已 terminal，或已明确 out of scope 时才读取本文件。
 
@@ -22,9 +22,9 @@
   PRD/issues、验证结果、只读要求和输出格式。
 - 如果工具只支持 full-history `fork_thread`，不要指定 `agent_type`；如果无法形成有效
   sub-agent 调用，就在本线程运行同等的 Standards 和 Spec diff review，并把 fallback
-  记录到 MR evidence。
+  记录到 PR/MR evidence。
 
-## Summary MR Body
+## Summary PR/MR Body
 
 包含：
 
@@ -40,22 +40,23 @@
 
 ## Remote Pass Gate
 
-- 打开或更新 MR 后，从 tracker 或 host API 读取 remote CI/CD status。
-- 读取 MR comments，确认 automated review Agent verdict。
+- 根据 remote host 选择正确对象：GitHub 用 PR，GitLab 用 MR。
+- 打开或更新 PR/MR 后，从 tracker 或 host API 读取 remote CI/CD status。
+- 读取 PR/MR comments，确认 automated review Agent verdict。
 - `pending`、missing、failed 或 ambiguous CI/CD 都不算完成。
 - review-agent requests、failures 或 absent verdict 都不算完成。
-- 只有 CI/CD 通过，且 review Agent 明确说 MR can pass，才算完成。
+- 只有 CI/CD 通过，且 review Agent 明确说 PR/MR can pass，才算完成。
 
 ## Review-Agent Mistake
 
 对每个 blocking review-agent comment：
 
-1. 基于 code、tests、artifacts 和 MR diff evidence，把它分类为 `valid`、`invalid`
+1. 基于 code、tests、artifacts 和 PR/MR diff evidence，把它分类为 `valid`、`invalid`
    或 `Unknown`。
 2. 如果是 `valid`，完成前先修复或派发 follow-up issue。
 3. 如果是 `Unknown`，询问用户或收集最小缺失证据。
-4. 如果是 `invalid`，在 MR 里用简短反驳和直接证据回复。
-5. 在 MR 里留下 adaptation note，记录为什么可能触发该 review，以及未来
+4. 如果是 `invalid`，在 PR/MR 里用简短反驳和直接证据回复。
+5. 在 PR/MR 里留下 adaptation note，记录为什么可能触发该 review，以及未来
    review-agent behavior 应如何改变。
 
 对 invalid review 使用这个中文评论形状：
@@ -72,5 +73,5 @@ Review-agent 适配记录：
 - 期望后续行为：<review Agent 应该学习的具体规则>
 ```
 
-不要因为已经反驳就把 MR 标为完成。完成仍要求 passing review-agent verdict，或用户
+不要因为已经反驳就把 PR/MR 标为完成。完成仍要求 passing review-agent verdict，或用户
 明确指示带着 unresolved remote-gate risk 停止。
