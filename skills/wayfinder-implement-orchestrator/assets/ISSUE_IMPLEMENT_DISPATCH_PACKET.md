@@ -38,9 +38,14 @@ Tracker URL：
 
 Review gate：
 - 实现检查通过后、提交前，基于 `Base commit` 运行 `/code-review`。
-- 如果 `/code-review` 要求并行 sub-agents，先发现当前可用的 sub-agent 工具。
-  如果本子线程没有 sub-agent 工具，就在本线程执行同等的 Standards 和 Spec
-  diff review，并在 final report 记录 `sub-agent fallback`。
+- 如果 `/code-review` 要求并行 sub-agents，先发现当前可用的 sub-agent 工具，优先用
+  `spawn_agent`。
+- 如果指定 `agent_type`，不要同时做 full-history/context fork。使用 no-context spawn
+  或 `fork_context: false`，并把完整 review 包显式传入：base commit、diff/files、
+  PRD/issue、验收标准、禁止范围、验证结果、只读要求和输出格式。
+- 如果工具只支持 full-history `fork_thread`，不要指定 `agent_type`；如果无法形成有效
+  sub-agent 调用，就在本线程执行同等的 Standards 和 Spec diff review，并在 final
+  report 记录 `sub-agent fallback`。
 - 提交前修复有效 findings。如果 review 无法完成，或某个 finding 需要父线程
   判断，停止并报告 `blocked`。
 

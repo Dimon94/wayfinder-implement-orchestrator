@@ -16,8 +16,13 @@
 - 每集成一个 child 后，运行该 issue 的 focused verification。
 - batch 完成后，运行能证明 PRD 的最小 whole-change check。
 - remote submission 前运行 `/code-review` 或 repo-native review gate。
-- 如果 review skill 无法在当前 session spawn sub-agents，就在本线程运行同等的
-  Standards 和 Spec diff review，并把 fallback 记录到 MR evidence。
+- 如果 review gate 要并行 sub-agents，优先用 `spawn_agent`。
+- 如果指定 `agent_type`，不要同时做 full-history/context fork。使用 no-context spawn
+  或 `fork_context: false`，并显式传入完整 review 包：base commit、integrated diff、
+  PRD/issues、验证结果、只读要求和输出格式。
+- 如果工具只支持 full-history `fork_thread`，不要指定 `agent_type`；如果无法形成有效
+  sub-agent 调用，就在本线程运行同等的 Standards 和 Spec diff review，并把 fallback
+  记录到 MR evidence。
 
 ## Summary MR Body
 
