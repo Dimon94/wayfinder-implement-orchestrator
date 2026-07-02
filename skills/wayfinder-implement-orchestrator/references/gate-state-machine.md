@@ -8,8 +8,8 @@
 | --- | --- | --- | --- |
 | `discovery` | Wayfinder map | 必要 research/prototype tickets 已 resolved，且 linked artifacts 存在 | 任何未解决的 product、architecture、access 或 risk choice |
 | `proof` | Map answers 加 linked artifacts | 证据支持 PRD，且没有隐藏假设 | proof 缺失、冲突或 stale |
-| `prd` | 已发布 PRD issue/doc | 已捕获用户批准的 seams 和 scope | Seam approval、scope tradeoff 或 tracker failure |
-| `issues` | 已发布 tracker issues | 已批准 vertical slices 有真实 issue IDs、read-back bodies 和 dependencies | Split/merge/dependency judgement 或 partial publish |
+| `prd` | 已发布 PRD issue/doc | 已捕获用户批准的 seams 和 scope；旧 tracker candidate overlap 已记录但未误判为 duplicate | Seam approval、scope tradeoff、精确 duplicate、或 tracker failure |
+| `issues` | 已发布 tracker issues | 已批准 vertical slices 有真实 issue IDs、read-back bodies 和 dependencies；duplicate 只按当前 PRD 父项判断 | Split/merge/dependency judgement、当前 PRD 下的 duplicate、或 partial publish |
 | `dispatch` | Tracker issues | Ready issues 没有 blocking dependencies 或 mutable-resource conflicts | issue set 模糊、files/resources 重叠、缺少 base branch |
 | `collect` | 5 分钟 automation wake-up、child thread readback | 每个 child 报告 status、commit if changed、checks、dirty state、touched files | child blocked/off-scope 或缺少 final report |
 | `integrate` | integration branch 上的 Git commits | child commit 已检查、clean、in-scope，且 integration 后 focused checks 通过 | conflict、scope drift、failed check |
@@ -47,6 +47,13 @@ prompts”结束。
 如果任何条件是 `Unknown`，把该 issue 从 batch 移除，或询问用户。在同一个 dispatch
 turn 中为剩余每个 issue 创建一个 `/implement` child，然后用一个 heartbeat 监控整个
 batch。
+
+## Tracker 去重
+
+宽关键词搜索只能发现候选，不能单独阻止发布。精确 duplicate 必须同时匹配当前批准
+PRD/slice、父子关系或 source 坐标、acceptance/禁止范围和门禁类型。历史迁移项、旧父
+PRD 下的实现 issue、低 IID 旧项、closed/stale 项，或只覆盖部分术语的宽 PRD，都记录为
+candidate overlap；除非用户明确选择复用/更新，否则不要把它们当成当前链路的完成产物。
 
 ## 上下文预算
 
