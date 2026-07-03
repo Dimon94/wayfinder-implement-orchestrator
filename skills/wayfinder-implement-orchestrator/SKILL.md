@@ -1,7 +1,22 @@
 ---
 name: wayfinder-implement-orchestrator
+version: 1.0.0
 description: Orchestrate tracker-backed Wayfinder maps through PRD, issues, issue-level implement threads, and one summary PR/MR.
 disable-model-invocation: true
+skill_class: user-entry
+route_family: main
+reads:
+  - references/gate-state-machine.md
+  - references/fresh-session-boundaries.md
+  - references/wayfinder-frontier-loop.md
+  - references/child-monitoring.md
+  - references/remote-closeout-checklist.md
+  - assets/GATE_CHILD_DISPATCH_PACKET.md
+  - assets/WAYFINDER_TICKET_DISPATCH_PACKET.md
+  - assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md
+  - assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md
+  - references/toc-thinking-processes.md
+writes: []
 ---
 
 # Wayfinder Implement Orchestrator
@@ -19,25 +34,29 @@ disable-model-invocation: true
    每个未阻塞且未 claimed 的 discovery child issue 都已知道。
 2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
    下一门禁。
-3. 加载 `references/fresh-session-boundaries.md`。完成标准：每个可执行 work item
+3. 如果当前 map/gate 涉及根因、因果、冲突、隐藏假设或不确定影响，加载
+   `references/toc-thinking-processes.md`。完成标准：当前门禁已有
+   TOC 记录，或缺失的 CRT 边、Conflict Cloud 假设、Injection 证据、PRT 障碍、
+   NBR 风险被标成 frontier / user stop / `Unknown`。
+4. 加载 `references/fresh-session-boundaries.md`。完成标准：每个可执行 work item
    都已分类为 fresh child、parent-owned gate 或 user stop。
-4. 如果要派发 PRD、issue 拆分、review 或 evidence-gathering gate child，加载
+5. 如果要派发 PRD、issue 拆分、review 或 evidence-gathering gate child，加载
    `assets/GATE_CHILD_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆填写一个
    gate packet。
-5. 如果要派发 discovery child issues，加载
+6. 如果要派发 discovery child issues，加载
    `references/wayfinder-frontier-loop.md` 和
    `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
    child issue 填写一个 packet。
-6. 如果下一个 discovery child issue 是 `wayfinder:grilling` 或需要实时判断，加载
+7. 如果下一个 discovery child issue 是 `wayfinder:grilling` 或需要实时判断，加载
    `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`。完成标准：一个 copy-paste
    prompt 能让用户在 fresh thread 跑完整拷问会话，并把结果带回父线程。
-7. 如果要派发 implementation issues，加载
+8. 如果要派发 implementation issues，加载
    `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
    issue 填写一个 packet。
-8. 如果 child threads 正在运行，加载 `references/child-monitoring.md`。完成标准：
+9. 如果 child threads 正在运行，加载 `references/child-monitoring.md`。完成标准：
    每个 child 都通过 startup probe，然后存在 5 分钟 automation reminder；如果缺少
    automation 支持，就报告手动检查坐标。
-9. 如果要收尾 summary PR/MR，加载 `references/remote-closeout-checklist.md`。完成标准：
+10. 如果要收尾 summary PR/MR，加载 `references/remote-closeout-checklist.md`。完成标准：
    所有 child results、commits、checks、issue links、CI/CD 和 review-agent verdicts
    都已映射。
 
@@ -48,6 +67,9 @@ disable-model-invocation: true
 - 每个门禁只保留一个真相源：discovery 用 `wayfinder:map` issue 和它的 child
   issues，product scope 用 PRD issue，implementation slices 用 tracker issues，
   execution 用 child thread readback 加 Git commits，final review 用 PR/MR。
+- 用 TOC 记录判断复杂门禁：discovery 找缺失 CRT 边和 Conflict Cloud 假设，PRD
+  写清 what to change / what to change to / how to cause change，issues 拆成
+  Injection / prerequisite / transition step，integration 用 FRT/NBR 查合并负分支。
 - Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的
   resolution comment 和 linked artifacts；map 的 Decisions-so-far 只追加一行
   title link 加 gist。
@@ -63,6 +85,8 @@ disable-model-invocation: true
   只在 wake-up 或 child handoff 时检查进度。
 - 未阻塞且未 claimed 的 discovery frontier 是可执行工作，不是用户 prompt。除非有
   停止条件或缺少工具阻止派发，否则自动创建 child threads。
+- Discovery child issue 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud
+  假设、Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
 - 如果 source worktree 不是可创建线程的 project target，使用
   `references/fresh-session-boundaries.md` 里的 fallback，并只报告一次。
 - 创建 worktree 或在某个 worktree 内工作时，不要切换主目录/source worktree 的
