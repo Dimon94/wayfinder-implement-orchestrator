@@ -4,39 +4,111 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILL_NAME="wayfinder-implement-orchestrator"
 CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+CLAUDE_HOME_DIR="${CLAUDE_HOME:-$HOME/.claude}"
 SKIP_DEPS=0
+TARGET="codex"
 
 usage() {
   cat <<EOF
-Usage: ./scripts/install.sh [--skip-deps-check]
+Usage: ./scripts/install.sh [--target codex|claude|all] [--skip-deps-check]
 
-Installs $SKILL_NAME to:
+Default target: codex
+
+Installs $SKILL_NAME to one or both:
   \${CODEX_HOME:-~/.codex}/skills/$SKILL_NAME
+  \${CLAUDE_HOME:-~/.claude}/skills/$SKILL_NAME
+
+Claude helper agents install to:
+  \${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 EOF
 }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --skip-deps-check) SKIP_DEPS=1 ;;
-    -h|--help) usage; exit 0 ;;
-    *) echo "Unknown argument: $1" >&2; usage; exit 1 ;;
+    --skip-deps-check)
+      SKIP_DEPS=1
+      ;;
+    --target)
+      [ "$#" -ge 2 ] || { echo "--target requires codex, claude, or all" >&2; exit 1; }
+      TARGET="$2"
+      shift
+      ;;
+    --codex)
+      TARGET="codex"
+      ;;
+    --claude)
+      TARGET="claude"
+      ;;
+    --all)
+      TARGET="all"
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
   esac
   shift
 done
 
-SOURCE="$ROOT/skills/$SKILL_NAME"
-DEST="$CODEX_HOME_DIR/skills/$SKILL_NAME"
-
-[ -f "$SOURCE/SKILL.md" ] || {
-  echo "Cannot find bundled skill at $SOURCE" >&2
-  exit 1
-}
+case "$TARGET" in
+  codex|claude|all) ;;
+  *)
+    echo "Invalid --target: $TARGET" >&2
+    usage
+    exit 1
+    ;;
+esac
 
 if command -v python3 >/dev/null 2>&1; then
   python3 "$ROOT/scripts/validate.py"
 fi
 
-if [ "$SKIP_DEPS" -eq 0 ]; then
+install_codex() {
+  local source="$ROOT/skills/$SKILL_NAME"
+  local dest="$CODEX_HOME_DIR/skills/$SKILL_NAME"
+
+  [ -f "$source/SKILL.md" ] || {
+    echo "Cannot find bundled Codex skill at $source" >&2
+    exit 1
+  }
+
+  rm -rf "$dest"
+  mkdir -p "$(dirname "$dest")"
+  cp -R "$source" "$dest"
+
+  echo "Installed Codex $SKILL_NAME to $dest"
+}
+
+install_claude() {
+  local skill_source="$ROOT/claude/skills/$SKILL_NAME"
+  local agents_source="$ROOT/claude/agents"
+  local skill_dest="$CLAUDE_HOME_DIR/skills/$SKILL_NAME"
+  local agents_dest="$CLAUDE_HOME_DIR/agents"
+
+  [ -f "$skill_source/SKILL.md" ] || {
+    echo "Cannot find bundled Claude skill at $skill_source" >&2
+    exit 1
+  }
+  [ -d "$agents_source" ] || {
+    echo "Cannot find bundled Claude agents at $agents_source" >&2
+    exit 1
+  }
+
+  rm -rf "$skill_dest"
+  mkdir -p "$(dirname "$skill_dest")" "$agents_dest"
+  cp -R "$skill_source" "$skill_dest"
+  cp "$agents_source"/wayfinder-*.md "$agents_dest"/
+
+  echo "Installed Claude $SKILL_NAME to $skill_dest"
+  echo "Installed Claude wayfinder agents to $agents_dest"
+}
+
+if [ "$SKIP_DEPS" -eq 0 ] && { [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; }; then
   missing=()
   for dep in ask-matt wayfinder to-prd to-issues implement code-review writing-great-skills; do
     [ -f "$CODEX_HOME_DIR/skills/$dep/SKILL.md" ] || missing+=("$dep")
@@ -50,8 +122,15 @@ if [ "$SKIP_DEPS" -eq 0 ]; then
   fi
 fi
 
-rm -rf "$DEST"
-mkdir -p "$(dirname "$DEST")"
-cp -R "$SOURCE" "$DEST"
-
-echo "Installed $SKILL_NAME to $DEST"
+case "$TARGET" in
+  codex)
+    install_codex
+    ;;
+  claude)
+    install_claude
+    ;;
+  all)
+    install_codex
+    install_claude
+    ;;
+esac

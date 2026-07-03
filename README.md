@@ -2,12 +2,12 @@
 
 [中文说明](README.zh-CN.md)
 
-A personal Codex skill for orchestrating the Matt Pocock skills multi-session
-delivery flow:
+A personal Codex/Claude skill bundle for orchestrating the Matt Pocock skills
+multi-session delivery flow:
 
 ```text
 /wayfinder discovery -> proof gate -> /to-prd -> /to-issues
--> issue-level /implement child threads -> integration -> summary PR/MR
+-> issue-level /implement workers -> integration -> summary PR/MR
 ```
 
 It is a thin orchestrator. It does not replace `/wayfinder`, `/to-prd`,
@@ -19,7 +19,7 @@ This skill is tightly coupled to the
 [`mattpocock-skills:ask-matt`](https://github.com/mattpocock/skills) framework shape.
 
 It assumes the target machine already has the Matt Pocock engineering flow
-installed and callable by Codex:
+installed and callable:
 
 - `ask-matt`
 - `wayfinder`
@@ -30,10 +30,10 @@ installed and callable by Codex:
 - `writing-great-skills`
 
 `ask-matt` defines the idea-to-ship route. This skill only coordinates the part
-where that route becomes multiple issues, multiple fresh sessions, and one final
+where that route becomes multiple issues, multiple sessions, and one final
 GitHub PR or GitLab MR.
 
-## Install
+## Install Codex
 
 ```bash
 git clone https://github.com/Dimon94/wayfinder-implement-orchestrator.git
@@ -47,16 +47,35 @@ Default install target:
 ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 ```
 
-If Matt Pocock skills are not installed yet, the installer fails. To skip the
-dependency check:
+If Matt Pocock skills are not installed yet, the Codex install fails. To skip
+the dependency check:
 
 ```bash
 ./scripts/install.sh --skip-deps-check
 ```
 
+## Install Claude
+
+```bash
+./scripts/install.sh --target claude
+```
+
+This installs:
+
+```text
+${CLAUDE_HOME:-~/.claude}/skills/wayfinder-implement-orchestrator
+${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
+```
+
+To install both targets:
+
+```bash
+./scripts/install.sh --target all
+```
+
 ## Use
 
-Invoke it explicitly in Codex:
+Invoke the Codex version explicitly:
 
 ```text
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
@@ -64,21 +83,33 @@ Run research/prototype/task tickets first, then PRD/issues, then parallel
 issue-level /implement child threads, then one summary PR/MR.
 ```
 
+Invoke the Claude version from a Herdr-managed Claude pane:
+
+```text
+Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
+Dispatch discovery, grilling, gate, implementation, and review workers as Herdr
+pane workers.
+```
+
 ## Bundle Format
 
-This repo uses a minimal single-skill bundle format:
+This repo uses a dual-surface skill bundle format:
 
 ```text
 skill-bundle.json
 skills/wayfinder-implement-orchestrator/SKILL.md
 skills/wayfinder-implement-orchestrator/references/*.md
 skills/wayfinder-implement-orchestrator/assets/*.md
+claude/skills/wayfinder-implement-orchestrator/SKILL.md
+claude/skills/wayfinder-implement-orchestrator/references/*.md
+claude/skills/wayfinder-implement-orchestrator/assets/*.md
+claude/agents/wayfinder-*.md
 scripts/install.sh
 scripts/validate.py
 ```
 
-`skill-bundle.json` is the package truth: name, entrypoint, install target, and
-required external skills.
+`skill-bundle.json` is the package truth: name, entrypoints, install targets,
+and required external skills.
 
 ## Verify
 
@@ -88,13 +119,17 @@ python3 scripts/validate.py
 
 The validator checks:
 
-- `SKILL.md` frontmatter
+- Codex and Claude `SKILL.md` frontmatter
 - referenced `references/` and `assets/` paths
+- Claude helper agent definitions
 - bundle manifest consistency
 - no copied cc-dev PDCA state machine
 
 ## Boundary
 
-This is Codex-oriented. It expects Codex thread tools such as `create_thread`,
-`read_thread`, `send_message_to_thread`, and `automation_update` when running
-the orchestration path.
+The Codex version expects Codex thread tools such as `create_thread`,
+`read_thread`, `send_message_to_thread`, and `automation_update`.
+
+The Claude version expects to run inside Herdr and dispatch independent
+`claude --dangerously-skip-permissions` pane workers. Claude Agent Team is only
+a pane-local accelerator.
