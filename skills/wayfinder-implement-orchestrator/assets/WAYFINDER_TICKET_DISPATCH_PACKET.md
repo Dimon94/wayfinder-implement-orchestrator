@@ -37,6 +37,7 @@ Source worktree：
 
 执行规则：
 - 使用 fresh session。
+- 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
 - 如果 ticket 仍 open 且未 claimed，先设置 `wayfinder:claimed` 并读回确认；如果已被
   别的 session claimed，停止并报告 blocker。
 - 不要解决 sibling child issues。

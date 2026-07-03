@@ -61,6 +61,7 @@
 
 执行规则：
 - 使用 fresh session。
+- 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
 - 不要再派发子线程。
 - 不要进入 `/implement`。
 - 不要集成、push、打开/更新 PR/MR，也不要评论 PR/MR。

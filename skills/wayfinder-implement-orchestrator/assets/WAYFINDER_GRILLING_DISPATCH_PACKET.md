@@ -41,6 +41,7 @@ Ticket label：wayfinder:grilling
 - 禁止范围：
 
 执行规则：
+- 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
 - 如果 ticket 仍 open 且未 claimed，先设置 `wayfinder:claimed` 并读回确认；如果已被
   别的 session claimed，停止并报告 blocker。
 - resolved 后，把 answer 写成 ticket 的 resolution comment，close ticket，并给

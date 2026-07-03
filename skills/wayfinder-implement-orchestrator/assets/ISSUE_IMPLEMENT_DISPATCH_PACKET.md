@@ -55,6 +55,7 @@ Review gate：
 
 执行规则：
 - 使用 fresh session，并使用自己的 worktree/branch。
+- 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
 - 不要创建 sibling child threads。
 - 不要集成、cherry-pick、push、打开 PR/MR、关闭 tracker issue，或标记 sibling
   work complete。

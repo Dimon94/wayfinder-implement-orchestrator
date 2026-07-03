@@ -28,6 +28,8 @@
 - Wayfinder frontier query、selection 和下一轮 dispatch。
 - Integration branch cherry-picks、conflict resolution，以及 PR/MR push/open/update。
 - PR/MR comments、review-agent rebuttals，以及 final remote-gate completion。
+- 创建 worktree 或需要分支时，只在目标 worktree 目录内创建/切换分支；不要切换
+  主目录/source worktree 的分支。
 
 ## 应该停止
 

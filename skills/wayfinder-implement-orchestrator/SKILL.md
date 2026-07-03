@@ -65,6 +65,8 @@ disable-model-invocation: true
   停止条件或缺少工具阻止派发，否则自动创建 child threads。
 - 如果 source worktree 不是可创建线程的 project target，使用
   `references/fresh-session-boundaries.md` 里的 fallback，并只报告一次。
+- 创建 worktree 或在某个 worktree 内工作时，不要切换主目录/source worktree 的
+  分支。需要新分支时，只在目标 worktree 目录内创建/切换该分支。
 - 只有 `create_thread` 不够。进入监控前，读取每个 child 一次，确认它已经从 dispatch
   prompt 启动；空线程或 interrupted 线程不算已派发。
 - bounded execution 优先用 fresh sessions。父线程拥有 gates、user questions、
