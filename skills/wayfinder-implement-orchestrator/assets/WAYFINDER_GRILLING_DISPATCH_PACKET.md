@@ -16,6 +16,7 @@ Ticket label：wayfinder:grilling
 拷问目标：
 需要解决的决策分支：
 -
+进度快照：<当前门禁；discovery 已完成/运行/阻塞/待派发数量；本 ticket 为什么需要用户判断；下一门禁或 blocker>
 
 路由：
 - 使用该 map issue 和 ticket issue 调用 /wayfinder。

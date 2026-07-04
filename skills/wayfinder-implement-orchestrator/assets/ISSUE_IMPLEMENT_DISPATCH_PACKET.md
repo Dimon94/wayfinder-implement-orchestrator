@@ -12,6 +12,7 @@ Issue 标题：
 基线提交：
 集成分支：
 Tracker URL：
+进度快照：<当前门禁；implementation 已完成/运行/阻塞/待派发数量；本 batch；下一门禁或 blocker>
 
 真相源：
 - PRD：<id/url>

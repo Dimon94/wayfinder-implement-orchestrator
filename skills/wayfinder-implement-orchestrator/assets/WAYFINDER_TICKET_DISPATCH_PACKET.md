@@ -13,6 +13,7 @@ Ticket label：wayfinder:research | wayfinder:prototype | wayfinder:task
 基线提交：
 执行目标：
 Source worktree：
+进度快照：<当前门禁；discovery 已完成/运行/阻塞/待派发数量；本 batch；下一门禁或 blocker>
 
 路由：
 - 使用该 map issue 和 ticket issue 调用 /wayfinder。

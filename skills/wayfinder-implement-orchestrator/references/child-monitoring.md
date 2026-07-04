@@ -26,6 +26,7 @@
   heartbeat。
 - 只包含稳定坐标：child thread IDs、work item IDs、必要时的 integration
   branch、tracker links 和下一门禁。
+- 包含派发时的 `进度快照`；每次唤醒只能从真相源重算进度，不沿用旧快照当事实。
 - 写入 ignored child thread IDs 和原因，确保 heartbeat 不会把它们当作门禁证据。
 - 只有 `automation_update` 成功并返回 automation id 后，才报告监控已启用。
 - 如果 automation tools 不可用或调用失败，保留同一组坐标停止，并给出手动 5 分钟
@@ -40,6 +41,7 @@ heartbeat prompt 必须使用中文，并包含：
 - 已收到 handoff 但仍处于 settling 的 child IDs；
 - 5 分钟 cadence；
 - integration branch；
+- 派发时的 `进度快照`，以及唤醒时必须从真相源重算的规则；
 - 每次唤醒只读取每个 child 一次的规则；
 - 不做 full-log summaries 的规则；
 - 只有已验证的 terminal child reports 才能推进门禁的规则；

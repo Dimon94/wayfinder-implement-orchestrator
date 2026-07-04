@@ -73,6 +73,9 @@ writes: []
 - Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的
   resolution comment 和 linked artifacts；map 的 Decisions-so-far 只追加一行
   title link 加 gist。
+- 每次派发 child batch 前，从当前门禁真相源现算一行 `进度快照`，并填入每个
+  child dispatch packet；不要把进度写成 map 节点或长期状态。快照只写已验证事实：
+  当前门禁、完成/运行/阻塞数量、正在派发的 batch、下一门禁或 blocker。
 - 面向人读的 map/ticket 引用用 issue title link；裸 id/number/url 只作为坐标。
 - 只在判断门禁问用户：未解决的 discovery choice、PRD seam approval、issue split
   approval、模糊 dispatch batch、integration 失败、未授权 remote action、有效的

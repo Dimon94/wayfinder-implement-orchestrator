@@ -10,6 +10,7 @@
 路由 skill：/to-prd | /to-issues | /code-review | none
 基线分支：
 基线提交：
+进度快照：<当前门禁；已完成/运行/阻塞/待派发 work items；本 child 的作用；下一门禁或 blocker>
 
 真相源坐标：
 - Wayfinder map issue：
