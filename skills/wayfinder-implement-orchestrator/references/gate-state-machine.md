@@ -30,7 +30,7 @@ Research、prototype 和 task child issues 属于 `/wayfinder`，不属于 `/imp
 resolution comment，close ticket，把 artifact link 留在 ticket，并给 map
 Decisions-so-far 追加 title link + gist；不要把完整 answer 或 artifact 复制进 map。
 
-如果 frontier query 返回未阻塞且未 claimed 的 `wayfinder:research`、
+如果 frontier query 返回 open、未阻塞且 unassigned 的 `wayfinder:research`、
 `wayfinder:prototype` 或可自动执行的 `wayfinder:task` child issues，且表格没有要求
 停下问用户，就在同一轮派发这些 tickets。不要以“让用户复制粘贴 child prompts”结束。
 

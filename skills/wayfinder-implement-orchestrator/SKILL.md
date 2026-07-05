@@ -30,8 +30,8 @@ writes: []
 1. 读取或创建最小 wayfinder map issue、离工作最近的 repo instructions、
    `docs/agents/issue-tracker.md` 的 Wayfinding operations，以及任何已引用的
    research/prototype artifacts。完成标准：map issue 坐标、tracker 表达 child
-   issues/blocking/frontier 的方式、每个当前真相源坐标都已知道或标为 `Unknown`，
-   每个未阻塞且未 claimed 的 discovery child issue 都已知道。
+   issues/blocking/frontier/assignee claim 的方式、每个当前真相源坐标都已知道或标为
+   `Unknown`，每个 open、未阻塞且 unassigned 的 discovery child issue 都已知道。
 2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
    下一门禁。
 3. 如果当前 map/gate 涉及根因、因果、冲突、隐藏假设或不确定影响，加载
@@ -86,7 +86,7 @@ writes: []
   可能触发该 review，以及 review Agent 应该学习什么。
 - 不要持续读取 child threads。派发后创建 5 分钟 reminder automation，停止主动循环，
   只在 wake-up 或 child handoff 时检查进度。
-- 未阻塞且未 claimed 的 discovery frontier 是可执行工作，不是用户 prompt。除非有
+- open、未阻塞且 unassigned 的 discovery frontier 是可执行工作，不是用户 prompt。除非有
   停止条件或缺少工具阻止派发，否则自动创建 child threads。
 - Discovery child issue 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud
   假设、Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
@@ -122,7 +122,7 @@ writes: []
 
 执行：
 
-1. 运行 wayfinder frontier loop：查询 open、未阻塞且未 claimed 的 discovery child
+1. 运行 wayfinder frontier loop：查询 open、未阻塞且 unassigned 的 discovery child
    issues，派发成 fresh `/wayfinder` sessions；每轮结束重读 map issue 和 frontier；
    重复直到 map 有足够证据进入 PRD，或需要用户判断。
 2. 如果 map 暴露人为 product 或 architecture choice，停止；否则运行 proof gate。

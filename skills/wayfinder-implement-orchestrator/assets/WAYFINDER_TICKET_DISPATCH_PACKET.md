@@ -27,7 +27,7 @@ Source worktree：
 -
 
 允许范围：
-- 这个 ticket issue 的 body/comments/labels/close state
+- 这个 ticket issue 的 body/comments/labels/assignee/close state
 - Map issue 的 Decisions-so-far 和 Fog index 行
 - Artifact paths：
 - 禁止范围：
@@ -39,8 +39,8 @@ Source worktree：
 执行规则：
 - 使用 fresh session。
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
-- 如果 ticket 仍 open 且未 claimed，先设置 `wayfinder:claimed` 并读回确认；如果已被
-  别的 session claimed，停止并报告 blocker。
+- 如果 ticket 仍 open 且 unassigned，先 assign 给自己并读回确认；如果已分配给
+  别的 session/dev，停止并报告 blocker。
 - 不要解决 sibling child issues。
 - 不要创建后续 sessions。把 `/wayfinder` Next steps 留在 final report；
   父编排线程负责打开下一批 fresh sessions。
