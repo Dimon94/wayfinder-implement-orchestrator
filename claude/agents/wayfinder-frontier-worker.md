@@ -13,8 +13,8 @@ color: cyan
 规则：
 
 - 全程中文汇报；路径、命令、issue id、commit hash 和代码字面量保持原样。
-- 先确认 issue title link、map issue、问题陈述、blocking 状态、claimed 状态和完成标准。
-- 如果 issue 未 claimed，先按当前 tracker 规则 claim；如果已被别人 claimed，停止并回报。
+- 先确认 issue title link、map issue、问题陈述、blocking 状态、assignee 状态和完成标准。
+- 如果 issue 仍 open 且 unassigned，先 assign 给自己并读回确认；如果已分配给别人，停止并回报。
 - 只回答一个具体缺口：CRT 因果边、Conflict Cloud 假设、Injection 证据、PRT 障碍或 NBR 风险。
 - research/prototype artifacts 存成 repo/tracker 认可的位置，并把链接写入 resolution。
 - 不做 implementation slice，不开 PR/MR，不做 final integration。
@@ -31,8 +31,8 @@ color: cyan
 ## 决策影响
 <应写入 map Decisions-so-far 的一行 gist，或说明还不能写>
 
-## 新 Frontier / Fog
-- <新 ticket/fog 建议或 None>
+## 新 Frontier / Not yet specified / Out of scope
+- <新 ticket、Not yet specified fog、Out of scope 建议或 None>
 
 ## 阻塞
 <None 或具体需要 lead/user 判断的问题>

@@ -29,8 +29,9 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
 
 1. 读取或创建最小 wayfinder map issue、最近的 repo instructions、
    `docs/agents/issue-tracker.md` 的 Wayfinding operations，以及已引用 artifacts。
-   完成标准：map 坐标、tracker child/blocking/frontier 表达方式、当前真相源坐标、
-   open/unblocked/unclaimed discovery frontier 都已知道或标为 `Unknown`。
+   完成标准：map 坐标、Destination、Decisions-so-far、Not yet specified、
+   Out of scope、tracker child/blocking/frontier/assignee claim 表达方式、当前真相源坐标、
+   open、未阻塞且 unassigned 的 discovery frontier 都已知道或标为 `Unknown`。
 2. 加载 `references/gate-state-machine.md`。完成标准：当前 gate、真相源和下一 gate 已识别。
 3. 当前 gate 涉及根因、因果、冲突、隐藏假设或不确定影响时，加载
    `references/toc-thinking-processes.md`。完成标准：缺失 CRT 边、
@@ -100,6 +101,8 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   worker readback 加 Git commits；final review 用 PR/MR。
 - Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的 resolution
   comment 和 linked artifacts；map 的 Decisions-so-far 只追加 title link 加 gist。
+- Wayfinder map 的 Destination 固定本轮边界；Not yet specified 只放仍然 in-scope
+  但还不能成票的 fog，Out of scope 只放已 ruled beyond destination 的 work。
 - 面向人读的 map/ticket 引用用 issue title link；裸 id/number/url 只作为坐标。
 - Discovery worker 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud 假设、
   Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
@@ -122,8 +125,9 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
 
 执行：
 
-1. 查询 open、未阻塞、未 claimed 的 discovery child issues，为每个 ready frontier
-   创建 Herdr pane worker；每轮结束重读 map issue 和 frontier。
+1. 先读取 Destination、Decisions-so-far、Not yet specified 和 Out of scope，再查询
+   open、未阻塞且 unassigned 的 discovery child issues，为每个 ready frontier 创建
+   Herdr pane worker；每轮结束重读 map issue 和 frontier。
 2. 如果 map 暴露人为 product 或 architecture choice，停止给 lead/user 判断；否则进入
    proof gate。
 3. 边界清晰时创建 PRD gate pane worker；遇到 seam approval 回到 lead 停止；然后发布 PRD。

@@ -6,7 +6,7 @@
 
 | Gate | 真相源 | 通过条件 | 何时停下问用户 |
 | --- | --- | --- | --- |
-| `discovery` | Wayfinder map issue 和 child issue frontier | 必要 research/prototype/task child issues 已 closed，resolution comments 和必要 linked artifacts 存在 | 任何未解决的 product、architecture、access 或 risk choice |
+| `discovery` | Wayfinder map issue 的 Destination/Decisions-so-far/Not yet specified/Out of scope 和 child issue frontier | 必要 research/prototype/task child issues 已 closed，resolution comments 和必要 linked artifacts 存在；阻塞下一门禁的 in-scope fog 已从 Not yet specified 毕业成票或被解决，越过 Destination 的 work 已进 Out of scope | 任何未解决的 product、architecture、access 或 risk choice |
 | `proof` | Closed child issue resolutions 加 linked artifacts | 证据支持 PRD，且没有隐藏假设 | proof 缺失、冲突或 stale |
 | `prd` | 已发布 PRD issue/doc | 已捕获用户批准的 seams 和 scope；旧 tracker candidate overlap 已记录但未误判为 duplicate | Seam approval、scope tradeoff、精确 duplicate、或 tracker failure |
 | `issues` | 已发布 tracker issues | 已批准 vertical slices 有真实 issue IDs、read-back bodies 和 dependencies；duplicate 只按当前 PRD 父项判断 | Split/merge/dependency judgement、当前 PRD 下的 duplicate、或 partial publish |
@@ -29,8 +29,11 @@ Research、prototype 和 task child issues 属于 `/wayfinder`，不属于 `/imp
 通过 `wayfinder-frontier-loop.md` 执行它们。ticket resolved 后，把 answer 写成
 resolution comment，close ticket，把 artifact link 留在 ticket，并给 map
 Decisions-so-far 追加 title link + gist；不要把完整 answer 或 artifact 复制进 map。
+如果 answer 让 Not yet specified 中的 fog 变得可成票，创建/连线 child issues，并从
+Not yet specified 删除对应 fog；如果某个 ticket 或 fog 已越过 Destination，close 或删除
+它，并在 Out of scope 追加 title link + gist + ruled-out reason，不要写入 Decisions-so-far。
 
-如果 frontier query 返回未阻塞且未 claimed 的 `wayfinder:research`、
+如果 frontier query 返回 open、未阻塞且 unassigned 的 `wayfinder:research`、
 `wayfinder:prototype` 或可自动执行的 `wayfinder:task` child issues，且表格没有要求
 停下问用户，就在同一轮派发这些 tickets。不要以“让用户复制粘贴 child prompts”结束。
 

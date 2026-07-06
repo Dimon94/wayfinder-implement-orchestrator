@@ -36,16 +36,20 @@ Ticket label：wayfinder:grilling
 
 允许范围：
 - 这个 ticket issue 的 body/comments/labels/close state
-- Map issue 的 Decisions-so-far 和 Fog index 行
+- Map issue 的 Destination、Decisions-so-far、Not yet specified 和 Out of scope 行
 - 如果 /domain-modeling 需要，可以修改 domain glossary 或 ADR 文件
 - 禁止范围：
 
 执行规则：
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
-- 如果 ticket 仍 open 且未 claimed，先设置 `wayfinder:claimed` 并读回确认；如果已被
-  别的 session claimed，停止并报告 blocker。
+- 如果 ticket 仍 open 且 unassigned，先 assign 给自己并读回确认；如果已分配给
+  别的 session/dev，停止并报告 blocker。
 - resolved 后，把 answer 写成 ticket 的 resolution comment，close ticket，并给
   map Decisions-so-far 追加 title link + gist；不要把完整 answer 粘贴进 map。
+- 如果 answer 让 Not yet specified 中的 fog 变得可成票，创建/连线 child issues，并从
+  Not yet specified 删除对应 fog；如果发现某个 ticket 或 fog 已越过 Destination，close
+  ticket 或删除 fog，并在 Out of scope 追加 title link + gist + ruled-out reason，不要写入
+  Decisions-so-far。
 
 返回父线程：
 - 只有当整个 grilling ticket resolved 或 blocked 后，才发现
@@ -65,7 +69,7 @@ Tracker 变更：
 -
 Docs 变更：
 -
-新增或解除阻塞的 child issues：
+新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
 Wayfinder Next steps：
 -
@@ -79,7 +83,7 @@ Ticket：
 线程：
 Tracker 变更：
 Docs 变更：
-新增或解除阻塞的 child issues：
+新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 阻塞：
 下一门禁建议：
 ```
