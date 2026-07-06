@@ -29,7 +29,8 @@ writes: []
 
 1. 读取或创建最小 wayfinder map issue、离工作最近的 repo instructions、
    `docs/agents/issue-tracker.md` 的 Wayfinding operations，以及任何已引用的
-   research/prototype artifacts。完成标准：map issue 坐标、tracker 表达 child
+   research/prototype artifacts。完成标准：map issue 坐标、Destination、
+   Decisions-so-far、Not yet specified、Out of scope、tracker 表达 child
    issues/blocking/frontier/assignee claim 的方式、每个当前真相源坐标都已知道或标为
    `Unknown`，每个 open、未阻塞且 unassigned 的 discovery child issue 都已知道。
 2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
@@ -73,6 +74,8 @@ writes: []
 - Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的
   resolution comment 和 linked artifacts；map 的 Decisions-so-far 只追加一行
   title link 加 gist。
+- Wayfinder map 的 Destination 固定本轮边界；Not yet specified 只放仍然 in-scope
+  但还不能成票的 fog，Out of scope 只放已 ruled beyond destination 的 work。
 - 每次派发 child batch 前，从当前门禁真相源现算一行 `进度快照`，并填入每个
   child dispatch packet；不要把进度写成 map 节点或长期状态。快照只写已验证事实：
   当前门禁、完成/运行/阻塞数量、正在派发的 batch、下一门禁或 blocker。
@@ -122,7 +125,8 @@ writes: []
 
 执行：
 
-1. 运行 wayfinder frontier loop：查询 open、未阻塞且 unassigned 的 discovery child
+1. 运行 wayfinder frontier loop：先读取 Destination、Decisions-so-far、
+   Not yet specified 和 Out of scope，再查询 open、未阻塞且 unassigned 的 discovery child
    issues，派发成 fresh `/wayfinder` sessions；每轮结束重读 map issue 和 frontier；
    重复直到 map 有足够证据进入 PRD，或需要用户判断。
 2. 如果 map 暴露人为 product 或 architecture choice，停止；否则运行 proof gate。

@@ -28,7 +28,7 @@ Source worktree：
 
 允许范围：
 - 这个 ticket issue 的 body/comments/labels/assignee/close state
-- Map issue 的 Decisions-so-far 和 Fog index 行
+- Map issue 的 Destination、Decisions-so-far、Not yet specified 和 Out of scope 行
 - Artifact paths：
 - 禁止范围：
 
@@ -48,6 +48,10 @@ Source worktree：
 - 如果 ticket 需要人为判断，停止并报告问题。
 - 把 answer 写成 ticket 的 resolution comment，close ticket，并给 map
   Decisions-so-far 追加 title link + gist；不要把完整 answer 或 artifacts 粘贴进 map。
+- 如果 answer 让 Not yet specified 中的 fog 变得可成票，创建/连线 child issues，并从
+  Not yet specified 删除对应 fog；如果发现某个 ticket 或 fog 已越过 Destination，close
+  ticket 或删除 fog，并在 Out of scope 追加 title link + gist + ruled-out reason，不要写入
+  Decisions-so-far。
 - 如果 `执行目标` 和 `Source worktree` 不同，只能修改上面列出的外部可写目标；
   其他 source-worktree 路径全部只读。
 - 在本子线程 final answer 中输出完整 final report。
@@ -69,7 +73,7 @@ Tracker 变更：
 -
 Artifacts：
 -
-新增或解除阻塞的 child issues：
+新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
 Wayfinder Next steps：
 -
@@ -82,7 +86,7 @@ Ticket：
 状态：
 线程：
 Artifacts：
-新增或解除阻塞的 child issues：
+新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 阻塞：
 下一门禁建议：
 ```
