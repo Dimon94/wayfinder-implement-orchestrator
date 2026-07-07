@@ -10,8 +10,8 @@
 -> issue-level /implement workers -> integration -> summary PR/MR
 ```
 
-它是薄编排器，不替代 `/wayfinder`、`/to-prd`、`/to-issues`、`/implement` 或
-`/code-review`。
+它是薄编排器，不替代 `/wayfinder`、`/grilling`、`/domain-modeling`、`/prototype`、
+`/to-prd`、`/to-issues`、`/implement` 或 `/code-review`。
 
 ## 强依赖
 
@@ -22,6 +22,9 @@
 
 - `ask-matt`
 - `wayfinder`
+- `grilling`
+- `domain-modeling`
+- `prototype`
 - `to-prd`
 - `to-issues`
 - `implement`
@@ -76,8 +79,9 @@ ${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑 research/prototype/task tickets，再进入 PRD/issues，然后并行派发 issue-level
-/implement child threads，最后汇总到一个 summary PR/MR。
+先跑 AFK research/task tickets 和 HITL prototype/grilling/task tickets，再进入
+PRD/issues，然后并行派发 issue-level /implement child threads，最后汇总到一个
+summary PR/MR。
 ```
 
 在 Herdr 管理的 Claude pane 里调用 Claude 版：

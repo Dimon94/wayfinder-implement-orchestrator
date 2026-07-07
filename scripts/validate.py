@@ -53,6 +53,22 @@ def main() -> None:
     if manifest.get("format") != "codex-claude-skill-bundle/v1":
         fail("invalid bundle format")
 
+    expected_requires = [
+        "ask-matt",
+        "wayfinder",
+        "grilling",
+        "domain-modeling",
+        "prototype",
+        "to-prd",
+        "to-issues",
+        "implement",
+        "code-review",
+        "writing-great-skills",
+    ]
+    actual_requires = [item.get("name") for item in manifest.get("requires") or []]
+    if actual_requires != expected_requires:
+        fail("requires mismatch")
+
     expected_entrypoints = {
         "codex": "skills/wayfinder-implement-orchestrator/SKILL.md",
         "claude": "claude/skills/wayfinder-implement-orchestrator/SKILL.md",

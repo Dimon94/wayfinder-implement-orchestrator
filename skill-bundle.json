@@ -23,6 +23,21 @@
       "reason": "Discovery maps and research/prototype tickets."
     },
     {
+      "name": "grilling",
+      "source": "mattpocock-skills",
+      "reason": "HITL Wayfinder decision tickets and destination clarification."
+    },
+    {
+      "name": "domain-modeling",
+      "source": "mattpocock-skills",
+      "reason": "Shared terminology during Wayfinder and grilling sessions."
+    },
+    {
+      "name": "prototype",
+      "source": "mattpocock-skills",
+      "reason": "HITL prototype tickets that need concrete artifacts for reaction."
+    },
+    {
       "name": "to-prd",
       "source": "mattpocock-skills",
       "reason": "PRD synthesis gate."

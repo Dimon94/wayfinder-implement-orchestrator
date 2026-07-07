@@ -110,7 +110,7 @@ install_claude() {
 
 if [ "$SKIP_DEPS" -eq 0 ] && { [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; }; then
   missing=()
-  for dep in ask-matt wayfinder to-prd to-issues implement code-review writing-great-skills; do
+  for dep in ask-matt wayfinder grilling domain-modeling prototype to-prd to-issues implement code-review writing-great-skills; do
     [ -f "$CODEX_HOME_DIR/skills/$dep/SKILL.md" ] || missing+=("$dep")
   done
 

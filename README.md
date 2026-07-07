@@ -10,8 +10,9 @@ multi-session delivery flow:
 -> issue-level /implement workers -> integration -> summary PR/MR
 ```
 
-It is a thin orchestrator. It does not replace `/wayfinder`, `/to-prd`,
-`/to-issues`, `/implement`, or `/code-review`.
+It is a thin orchestrator. It does not replace `/wayfinder`, `/grilling`,
+`/domain-modeling`, `/prototype`, `/to-prd`, `/to-issues`, `/implement`, or
+`/code-review`.
 
 ## Hard Dependency
 
@@ -23,6 +24,9 @@ installed and callable:
 
 - `ask-matt`
 - `wayfinder`
+- `grilling`
+- `domain-modeling`
+- `prototype`
 - `to-prd`
 - `to-issues`
 - `implement`
@@ -79,8 +83,9 @@ Invoke the Codex version explicitly:
 
 ```text
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
-Run research/prototype/task tickets first, then PRD/issues, then parallel
-issue-level /implement child threads, then one summary PR/MR.
+Run AFK research/task tickets and HITL prototype/grilling/task tickets first,
+then PRD/issues, then parallel issue-level /implement child threads, then one
+summary PR/MR.
 ```
 
 Invoke the Claude version from a Herdr-managed Claude pane:
