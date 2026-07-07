@@ -33,9 +33,10 @@ Decisions-so-far 追加 title link + gist；不要把完整 answer 或 artifact 
 Not yet specified 删除对应 fog；如果某个 ticket 或 fog 已越过 Destination，close 或删除
 它，并在 Out of scope 追加 title link + gist + ruled-out reason，不要写入 Decisions-so-far。
 
-如果 frontier query 返回 open、未阻塞且 unassigned 的 `wayfinder:research`、
-`wayfinder:prototype` 或可自动执行的 `wayfinder:task` child issues，且表格没有要求
-停下问用户，就在同一轮派发这些 tickets。不要以“让用户复制粘贴 child prompts”结束。
+如果 frontier query 返回 open、未阻塞且 unassigned 的 AFK `wayfinder:research` 或
+可自动执行的 `wayfinder:task` child issues，且表格没有要求停下问用户，就在同一轮
+派发这些 tickets。`wayfinder:prototype`、`wayfinder:grilling` 和 HITL task 必须等
+真人反馈后才能 close；没有可参与的用户线程/pane 时，父线程停在 `ask-user`。
 
 ## Implementation Batch
 

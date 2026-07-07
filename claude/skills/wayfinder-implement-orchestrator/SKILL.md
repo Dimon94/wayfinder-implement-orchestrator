@@ -32,6 +32,9 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
    完成标准：map 坐标、Destination、Decisions-so-far、Not yet specified、
    Out of scope、tracker child/blocking/frontier/assignee claim 表达方式、当前真相源坐标、
    open、未阻塞且 unassigned 的 discovery frontier 都已知道或标为 `Unknown`。
+   如果用户给的是松散想法而不是现有 map issue，先按 `/wayfinder` chart-map 流程命名
+   Destination 并 breadth-first 探 fog；如果没有 in-scope fog，说明不需要 map，停止并
+   问用户要直接进入哪种单 session 路径，不要创建空 map。
 2. 加载 `references/gate-state-machine.md`。完成标准：当前 gate、真相源和下一 gate 已识别。
 3. 当前 gate 涉及根因、因果、冲突、隐藏假设或不确定影响时，加载
    `references/toc-thinking-processes.md`。完成标准：缺失 CRT 边、
@@ -62,7 +65,8 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   禁止动作、完成标准、回报格式、blocked 时要问用户的问题格式。
 - 多个独立 work items 要先创建完整 worker set，再监控状态；不要串行化独立 discovery /
   grilling / implementation work。
-- Grilling workers 在需要用户回答时必须在自己的 pane 里留下清晰问题，并进入 blocked。
+- Prototype、Grilling 和 HITL Task workers 在需要用户回答时必须在自己的 pane 里留下
+  清晰问题，并进入 blocked。推荐答案只能帮助用户判断，不能替用户确认。
 - Implementation workers 一个 tracker issue 一个 worktree 一个 pane。会改文件的 worker
   先产出 plan；lead 批准后才实现。避免多个 panes 编辑同一文件或同一迁移序列。
 - Lead 只拥有 gates、用户判断、scope approval、issue split approval、integration、
@@ -101,8 +105,16 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   worker readback 加 Git commits；final review 用 PR/MR。
 - Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的 resolution
   comment 和 linked artifacts；map 的 Decisions-so-far 只追加 title link 加 gist。
+- Wayfinder 默认是 planning：discovery tickets 产出 decisions、evidence 和必要
+  linked artifacts，不交付 Destination 本身。只有 map 的 Notes 明确授权本轮把
+  execution 带进 map 时，才允许 discovery worker 做超出决策清障的执行。
 - Wayfinder map 的 Destination 固定本轮边界；Not yet specified 只放仍然 in-scope
   但还不能成票的 fog，Out of scope 只放已 ruled beyond destination 的 work。
+- Wayfinder ticket mode 必须显式识别：`Research` 是 AFK，`Prototype` 是 HITL，
+  `Grilling` 是 HITL，`Task` 可以是 HITL 或 AFK。HITL ticket 只能通过真人反馈
+  resolve；worker 可以给推荐答案，但不能把推荐当成用户回答。
+- `wayfinder:task` 只做让后续 decision 可判断的前置清障，例如申请访问、搬数据或
+  暴露事实；它不能变成实现 Destination 的交付票。
 - 面向人读的 map/ticket 引用用 issue title link；裸 id/number/url 只作为坐标。
 - Discovery worker 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud 假设、
   Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
@@ -119,8 +131,8 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
 
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑 research/prototype/task tickets，再进入 PRD/issues，然后并行派发 issue-level
-/implement workers，最后汇总到一个 summary PR/MR。
+先跑 AFK research/task tickets 和 HITL prototype/grilling/task tickets，再进入
+PRD/issues，然后并行派发 issue-level /implement workers，最后汇总到一个 summary PR/MR。
 ```
 
 执行：

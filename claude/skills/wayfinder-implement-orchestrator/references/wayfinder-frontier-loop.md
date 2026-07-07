@@ -8,8 +8,10 @@
    Not yet specified、Out of scope，并读取本 repo 的 Wayfinding operations。
 2. 查询 `open`、未被 native blocking 阻塞、且没有 assignee 的 child issues；
    不要从 map 正文推断 open tickets。
-3. 只派发 bounded `Research`、`Prototype` 或可自动执行的 `Task` child issues，使用
-   `WAYFINDER_TICKET_DISPATCH_PACKET.md`。
+3. 自动派发只覆盖 AFK discovery：`Research` 和可自动执行且只为 decision 清障的
+   `Task` child issues，使用 `WAYFINDER_TICKET_DISPATCH_PACKET.md`。
+   `Prototype`、`Grilling` 和 HITL `Task` 必须有真人参与；没有可参与的用户 pane 时，
+   生成对应 prompt/worker 坐标并停止为 `ask-user`。
 4. 派发后使用 `child-monitoring.md`；不要让父线程循环一直开着。
 5. wake-up 时读取 child final reports，然后重读 map issue 的 Destination、
    Decisions-so-far、Not yet specified、Out of scope 和 frontier query。
@@ -21,8 +23,9 @@
 
 - map issue 已有足够 proof 进入 PRD synthesis，且没有阻塞下一门禁的 in-scope
   Not yet specified fog；
-- 下一个 frontier child issue 是 `wayfinder:grilling`，或需要实时用户判断；加载
-  `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`，输出一个用于完整用户拷问会话的
+- 下一个 frontier child issue 是 `wayfinder:prototype`、`wayfinder:grilling`、
+  HITL `wayfinder:task`，或需要实时用户判断；加载
+  `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`，输出一个用于完整 HITL 会话的
   已填写 prompt，然后等待 returned handoff 再继续。不要每个问题创建一个 prompt；
 - child 报告 `ask-user`、`blocked` 或 `Unknown`；
 - 两个 child sessions 编辑了同一个 child issue，或留下冲突 tracker state。
