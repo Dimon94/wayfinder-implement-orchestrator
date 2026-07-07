@@ -4,8 +4,10 @@
 
 ## 默认 Fresh
 
-- Wayfinder `Research`、`Prototype` 和可自动执行的 `Task` child issues：每个 child
-  issue 一个 fresh `/wayfinder` child session。
+- Wayfinder AFK `Research` 和可自动执行的 `Task` child issues：每个 child issue
+  一个 fresh `/wayfinder` child session。
+- Wayfinder `Prototype`、`Grilling` 和 HITL `Task` child issues：只在用户能进入该
+  child session 反馈时派发；否则父线程停在 `ask-user`，并给出完整 session prompt。
 - child 发现的 Wayfinder follow-up tickets：父线程重读 map issue 和 frontier query，
   然后派发下一批 fresh sessions；children 不打开后代线程。
 - PRD synthesis：当 seams 已批准时，用 fresh `/to-prd` session 基于 map proof

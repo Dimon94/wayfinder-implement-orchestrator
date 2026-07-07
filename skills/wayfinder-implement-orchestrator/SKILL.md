@@ -33,6 +33,9 @@ writes: []
    Decisions-so-far、Not yet specified、Out of scope、tracker 表达 child
    issues/blocking/frontier/assignee claim 的方式、每个当前真相源坐标都已知道或标为
    `Unknown`，每个 open、未阻塞且 unassigned 的 discovery child issue 都已知道。
+   如果用户给的是松散想法而不是现有 map issue，先按 `/wayfinder` chart-map 流程命名
+   Destination 并 breadth-first 探 fog；如果没有 in-scope fog，说明不需要 map，停止并
+   问用户要直接进入哪种单 session 路径，不要创建空 map。
 2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
    下一门禁。
 3. 如果当前 map/gate 涉及根因、因果、冲突、隐藏假设或不确定影响，加载
@@ -74,8 +77,16 @@ writes: []
 - Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的
   resolution comment 和 linked artifacts；map 的 Decisions-so-far 只追加一行
   title link 加 gist。
+- Wayfinder 默认是 planning：discovery tickets 产出 decisions、evidence 和必要
+  linked artifacts，不交付 Destination 本身。只有 map 的 Notes 明确授权本轮把
+  execution 带进 map 时，才允许 discovery ticket 做超出决策清障的执行。
 - Wayfinder map 的 Destination 固定本轮边界；Not yet specified 只放仍然 in-scope
   但还不能成票的 fog，Out of scope 只放已 ruled beyond destination 的 work。
+- Wayfinder ticket mode 必须显式识别：`Research` 是 AFK，`Prototype` 是 HITL，
+  `Grilling` 是 HITL，`Task` 可以是 HITL 或 AFK。HITL ticket 只能通过真人反馈
+  resolve；agent 可以给推荐答案，但不能把推荐当成用户回答。
+- `wayfinder:task` 只做让后续 decision 可判断的前置清障，例如申请访问、搬数据或
+  暴露事实；它不能变成实现 Destination 的交付票。
 - 每次派发 child batch 前，从当前门禁真相源现算一行 `进度快照`，并填入每个
   child dispatch packet；不要把进度写成 map 节点或长期状态。快照只写已验证事实：
   当前门禁、完成/运行/阻塞数量、正在派发的 batch、下一门禁或 blocker。
@@ -119,8 +130,8 @@ writes: []
 
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑 research/prototype/task tickets，再进入 PRD/issues，然后并行派发 issue-level
-/implement threads，最后汇总到一个 summary PR/MR。
+先跑 AFK research/task tickets 和 HITL prototype/grilling/task tickets，再进入
+PRD/issues，然后并行派发 issue-level /implement threads，最后汇总到一个 summary PR/MR。
 ```
 
 执行：
