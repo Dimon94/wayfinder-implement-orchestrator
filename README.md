@@ -8,14 +8,14 @@ multi-session delivery flow:
 ```text
 /wayfinder discovery -> route classifier
   -> done
-  -> /to-prd -> /to-issues -> /implement workers
-  -> /to-issues -> /implement workers
+  -> /to-spec -> /to-tickets -> /implement workers
+  -> /to-tickets -> /implement workers
   -> /implement workers
 -> integration -> summary PR/MR
 ```
 
 It is a thin orchestrator. It does not replace `/wayfinder`, `/grilling`,
-`/domain-modeling`, `/prototype`, `/to-prd`, `/to-issues`, `/implement`, or
+`/domain-modeling`, `/prototype`, `/research`, `/to-spec`, `/to-tickets`, `/implement`, or
 `/code-review`.
 
 ## Hard Dependency
@@ -31,14 +31,15 @@ installed and callable:
 - `grilling`
 - `domain-modeling`
 - `prototype`
-- `to-prd`
-- `to-issues`
+- `research`
+- `to-spec`
+- `to-tickets`
 - `implement`
 - `code-review`
 - `writing-great-skills`
 
 `ask-matt` defines the idea-to-ship route. This skill coordinates the point
-where a map is complete, needs PRD synthesis, needs one implementation issue
+where a map is complete, needs spec synthesis, needs one implementation ticket
 split, or can go straight to implementation scheduling, then carries the work
 across multiple sessions and one final GitHub PR or GitLab MR.
 
@@ -50,11 +51,13 @@ cd wayfinder-implement-orchestrator
 ./scripts/install.sh
 ```
 
-Default install target:
+Default Codex install target is a symlink to this checkout:
 
 ```bash
 ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 ```
+
+After updating this repo, restart Codex to pick up the symlinked skill.
 
 If Matt Pocock skills are not installed yet, the Codex install fails. To skip
 the dependency check:
@@ -89,8 +92,9 @@ Invoke the Codex version explicitly:
 ```text
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
 Run the necessary Wayfinder discovery tickets first; after discovery completes,
-decide whether to stop, synthesize PRD, split implementation issues, or schedule
-/implement for existing implementation issues; then finish with one summary PR/MR.
+decide whether to stop, synthesize a spec, split implementation tickets, or
+schedule /implement for existing implementation tickets; then finish with one
+summary PR/MR.
 ```
 
 Invoke the Claude version from a Herdr-managed Claude pane:

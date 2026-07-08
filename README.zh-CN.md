@@ -8,14 +8,14 @@
 ```text
 /wayfinder discovery -> route classifier
   -> done
-  -> /to-prd -> /to-issues -> /implement workers
-  -> /to-issues -> /implement workers
+  -> /to-spec -> /to-tickets -> /implement workers
+  -> /to-tickets -> /implement workers
   -> /implement workers
 -> integration -> summary PR/MR
 ```
 
 它是薄编排器，不替代 `/wayfinder`、`/grilling`、`/domain-modeling`、`/prototype`、
-`/to-prd`、`/to-issues`、`/implement` 或 `/code-review`。
+`/research`、`/to-spec`、`/to-tickets`、`/implement` 或 `/code-review`。
 
 ## 强依赖
 
@@ -29,15 +29,16 @@
 - `grilling`
 - `domain-modeling`
 - `prototype`
-- `to-prd`
-- `to-issues`
+- `research`
+- `to-spec`
+- `to-tickets`
 - `implement`
 - `code-review`
 - `writing-great-skills`
 
-`ask-matt` 定义的是 idea -> ship 主路由；本 skill 只是在这个路由进入多 issue、
-多 session、GitHub PR 或 GitLab MR 汇总时，负责判断当前 map 是已经完成、需要 PRD、
-只需拆一次 implementation issue、或已经可以调度实现，然后编排阶段门禁、worker 派发、
+`ask-matt` 定义的是 idea -> ship 主路由；本 skill 只是在这个路由进入多 ticket、
+多 session、GitHub PR 或 GitLab MR 汇总时，负责判断当前 map 是已经完成、需要 spec、
+只需拆一次 implementation tickets、或已经可以调度实现，然后编排阶段门禁、worker 派发、
 监控和结果收敛。
 
 ## 安装 Codex 版
@@ -48,11 +49,13 @@ cd wayfinder-implement-orchestrator
 ./scripts/install.sh
 ```
 
-默认安装到：
+Codex 版默认安装为指向本 checkout 的软链接：
 
 ```bash
 ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 ```
+
+以后更新这个仓库后，重启 Codex 就能读取软链接指向的新版本。
 
 如果你还没安装 Matt Pocock skills，Codex 安装会失败。临时跳过依赖检查：
 
@@ -85,8 +88,8 @@ ${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑必要 Wayfinder discovery tickets；discovery 完成后判断是停止、需要 PRD、只需要拆一次
-implementation issue，还是已有 implementation issues 只需要调度 /implement child threads；
+先跑必要 Wayfinder discovery tickets；discovery 完成后判断是停止、需要 spec、只需要拆一次
+implementation tickets，还是已有 implementation tickets 只需要调度 /implement child threads；
 最后汇总到一个 summary PR/MR。
 ```
 

@@ -11,17 +11,17 @@
 - Worker 发现的 Wayfinder follow-up tickets：lead 重读 map issue 和 frontier query，
   然后派发下一批 Herdr worker panes；workers 不打开后代 panes。
 - Wayfinder complete：当 route classifier 选择 `wayfinder-complete`，lead 报告 map
-  已达 Destination 并停止，不派发 PRD、implementation issue split 或 `/implement`。
-- PRD synthesis：仅当 route classifier 选择 `needs-prd`，且 seams 已批准时，用 Herdr
-  `/to-prd` gate worker 基于 map proof 起草或发布；否则 worker 返回 seam proposal，
-  由 lead 问用户。`needs-implementation-issue-split` 或 `direct-implementation-dispatch`
-  路线禁止补造 PRD。
-- Implementation issue splitting：当 route classifier 选择
-  `needs-implementation-issue-split`，或 `needs-prd` 路线已发布 PRD 且仍需
-  implementation slices 时，用 Herdr `/to-issues` gate worker 起草或发布；如果 split
+  已达 Destination 并停止，不派发 spec、implementation ticket split 或 `/implement`。
+- Spec synthesis：仅当 route classifier 选择 `needs-spec`，且 seams 已批准时，用 Herdr
+  `/to-spec` gate worker 基于 map proof 起草或发布；否则 worker 返回 seam proposal，
+  由 lead 问用户。`needs-implementation-tickets` 或 `direct-implementation-dispatch`
+  路线禁止补造 spec。
+- Implementation ticket splitting：当 route classifier 选择
+  `needs-implementation-tickets`，或 `needs-spec` 路线已发布 spec 且仍需
+  implementation tickets 时，用 Herdr `/to-tickets` gate worker 起草或发布；如果 split
   尚未批准，lead 先问用户再发布。
-- Implementation：当 route classifier 选择 `direct-implementation-dispatch`，或 issues
-  gate 已经发布且读回 ready issues 后，每个 tracker issue 一个 Herdr `/implement`
+- Implementation：当 route classifier 选择 `direct-implementation-dispatch`，或 tickets
+  gate 已经发布且读回 ready tickets 后，每个 tracker implementation ticket/issue 一个 Herdr `/implement`
   worker pane。
 - Integrated review：lead 集成后，在可用时使用 Herdr read-only review worker 或
   pane-local Agent Team review helper。
@@ -40,7 +40,7 @@ hands-on 工作由谁执行。派发前给每个可执行 work item 标注 `code
   需要会话内工具或插件不可用时 `claude-native`。
 - Discovery `Research` 的大批量代码阅读：可经 `codex-plugin` 只读工单委托；决策、
   ticket resolution 和 map 写操作永远留在 Claude。
-- Grilling、PRD、issue split、review、integration、remote 操作：永远 `claude-native`。
+- Grilling、spec、ticket split、review、integration、remote 操作：永远 `claude-native`。
 
 ## Lead 持有
 
@@ -55,13 +55,13 @@ hands-on 工作由谁执行。派发前给每个可执行 work item 标注 `code
 
 ## 应该停止
 
-不要为 live user grilling、未解决的 product choices、不清晰的 route、未批准的 issue
+不要为 live user grilling、未解决的 product choices、不清晰的 route、未批准的 ticket
 splits、重叠 mutable resources、缺失 source truth，或任何无法从持久真相源验证验收标准的
 work item 创建 Herdr worker pane。
 
 ## 最小 Worker Prompt
 
-PRD、issue-splitting、review 和 evidence-gathering workers 使用
+Spec、ticket-splitting、review 和 evidence-gathering workers 使用
 `GATE_CHILD_DISPATCH_PACKET.md`。
 
 ## 外部坐标

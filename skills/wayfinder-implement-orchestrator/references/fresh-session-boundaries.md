@@ -11,16 +11,16 @@
 - child 发现的 Wayfinder follow-up tickets：父线程重读 map issue 和 frontier query，
   然后派发下一批 fresh sessions；children 不打开后代线程。
 - Wayfinder complete：当 route classifier 选择 `wayfinder-complete`，父线程报告 map
-  已达 Destination 并停止，不派发 PRD、implementation issue split 或 `/implement`。
-- PRD synthesis：仅当 route classifier 选择 `needs-prd`，且 seams 已批准时，用 fresh
-  `/to-prd` session 基于 map proof 起草或发布；否则 child 返回 seam proposal，由父线程
-  问用户。`needs-implementation-issue-split` 或 `direct-implementation-dispatch` 路线禁止补造 PRD。
-- Implementation issue splitting：当 route classifier 选择
-  `needs-implementation-issue-split`，或 `needs-prd` 路线已发布 PRD 且仍需
-  implementation slices 时，用 fresh `/to-issues` session 起草或发布；如果 split 尚未批准，
+  已达 Destination 并停止，不派发 spec、implementation ticket split 或 `/implement`。
+- Spec synthesis：仅当 route classifier 选择 `needs-spec`，且 seams 已批准时，用 fresh
+  `/to-spec` session 基于 map proof 起草或发布；否则 child 返回 seam proposal，由父线程
+  问用户。`needs-implementation-tickets` 或 `direct-implementation-dispatch` 路线禁止补造 spec。
+- Implementation ticket splitting：当 route classifier 选择
+  `needs-implementation-tickets`，或 `needs-spec` 路线已发布 spec 且仍需
+  implementation tickets 时，用 fresh `/to-tickets` session 起草或发布；如果 split 尚未批准，
   父线程先问用户再发布。
-- Implementation：当 route classifier 选择 `direct-implementation-dispatch`，或 issues 门禁已经发布
-  且读回 ready issues 后，每个 tracker issue 一个 fresh `/implement` child session。
+- Implementation：当 route classifier 选择 `direct-implementation-dispatch`，或 tickets 门禁已经发布
+  且读回 ready tickets 后，每个 tracker implementation ticket/issue 一个 fresh `/implement` child session。
 - Integrated review：父线程集成后，在可用时使用 fresh read-only `/code-review`
   或 repo-native review child。
 - Remote CI/CD 或 review-agent fixes：把每个需要改代码的 fix 转成 tracker issue，
@@ -41,13 +41,13 @@
 
 ## 应该停止
 
-不要为 live user grilling、未解决的 product choices、不清晰的 route、未批准的 issue
+不要为 live user grilling、未解决的 product choices、不清晰的 route、未批准的 ticket
 splits、重叠 mutable resources、缺失 source truth，或任何无法从持久真相源验证验收标准的
 work item 创建 child thread。
 
 ## 最小 Child Prompt
 
-PRD、issue-splitting、review 和 evidence-gathering children 使用
+Spec、ticket-splitting、review 和 evidence-gathering children 使用
 `GATE_CHILD_DISPATCH_PACKET.md`。
 
 ## 未注册 Worktree Targeting

@@ -5,7 +5,7 @@
 ```text
 项目：
 Lead pane：
-父 PRD/Scope source：<PRD id/url | Wayfinder map/source issue id/url>
+父 Spec/Scope source：<spec id/url | Wayfinder map/source issue id/url>
 Issue：
 Issue 标题：
 基线分支：
@@ -15,7 +15,7 @@ Tracker URL：
 进度快照：<当前门禁；implementation 已完成/运行/阻塞/待派发数量；本 batch；下一门禁或 blocker>
 
 真相源：
-- PRD：<id/url | none; route skipped PRD because scope is already implementation-ready>
+- Spec：<id/url | none; route skipped spec because scope is already implementation-ready>
 - Scope source：<map/source issue id/url and route decision>
 - Issue：<id/url>
 - Wayfinder proof：<map issue URL, closed ticket links, artifact paths>
@@ -52,7 +52,7 @@ Review gate：
 - 实现检查通过后、提交前，基于 `Base commit` 运行 `/code-review`。
 - 如果 `/code-review` 要求并行 helpers，优先使用 pane-local Claude Agent Team 的
   `wayfinder-integration-reviewer`，并把完整 review
-  包显式传入：base commit、diff/files、PRD/scope source/issue、验收标准、禁止范围、
+  包显式传入：base commit、diff/files、spec/scope source/ticket、验收标准、禁止范围、
   验证结果、只读要求和输出格式。
 - 如果无法形成有效 helper 调用，就在本 pane 执行同等的 Standards 和 Spec diff
   review，并在 final report 记录 `helper fallback`。

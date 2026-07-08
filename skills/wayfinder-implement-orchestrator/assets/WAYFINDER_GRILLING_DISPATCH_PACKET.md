@@ -36,7 +36,7 @@ HITL 目标：
   反馈足够支持 resolution 后才 close。
 - 如果这是 HITL `wayfinder:task`，给出精确 checklist 或执行可自动部分；需要用户
   执行/确认的步骤不能由 agent 代答。
-- 不要建议进入 `/to-prd`、`/to-issues` 或 `/implement`；父编排线程会重查
+- 不要建议进入 `/to-spec`、`/to-tickets` 或 `/implement`；父编排线程会重查
   map/frontier 再判断下一步。
 
 真相源：

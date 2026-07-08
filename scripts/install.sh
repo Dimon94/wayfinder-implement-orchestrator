@@ -15,7 +15,7 @@ Usage: ./scripts/install.sh [--target codex|claude|all] [--skip-deps-check]
 Default target: codex
 
 Installs $SKILL_NAME to one or both:
-  \${CODEX_HOME:-~/.codex}/skills/$SKILL_NAME
+  \${CODEX_HOME:-~/.codex}/skills/$SKILL_NAME (symlink to this checkout)
   \${CLAUDE_HOME:-~/.claude}/skills/$SKILL_NAME
 
 Claude helper agents install to:
@@ -79,9 +79,9 @@ install_codex() {
 
   rm -rf "$dest"
   mkdir -p "$(dirname "$dest")"
-  cp -R "$source" "$dest"
+  ln -s "$source" "$dest"
 
-  echo "Installed Codex $SKILL_NAME to $dest"
+  echo "Symlinked Codex $SKILL_NAME to $dest -> $source"
 }
 
 install_claude() {
@@ -110,7 +110,7 @@ install_claude() {
 
 if [ "$SKIP_DEPS" -eq 0 ] && { [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; }; then
   missing=()
-  for dep in ask-matt wayfinder grilling domain-modeling prototype to-prd to-issues implement code-review writing-great-skills; do
+  for dep in ask-matt wayfinder grilling domain-modeling prototype research to-spec to-tickets implement code-review writing-great-skills; do
     [ -f "$CODEX_HOME_DIR/skills/$dep/SKILL.md" ] || missing+=("$dep")
   done
 

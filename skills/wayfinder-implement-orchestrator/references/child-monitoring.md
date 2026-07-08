@@ -71,5 +71,5 @@ heartbeat prompt 必须使用中文，并包含：
 10. 当所有 work item 都已推进，且 PR/MR remote gate 完成后，用 `automation_update`
     删除 heartbeat。
 
-如果上下文被压缩，从真相源重建：wayfinder map issue、child issues、PRD、tracker
-issues、child final reports、Git commits 和 PR/MR state。不要相信父线程聊天记忆里的状态。
+如果上下文被压缩，从真相源重建：wayfinder map issue、child issues、spec、tracker
+tickets/issues、child final reports、Git commits 和 PR/MR state。不要相信父线程聊天记忆里的状态。

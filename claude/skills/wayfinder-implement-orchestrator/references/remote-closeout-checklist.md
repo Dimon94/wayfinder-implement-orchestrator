@@ -14,11 +14,11 @@
 
 - 只把已验证 worker commits cherry-pick 或以其他方式集成到 integration branch。
 - 每集成一个 worker 后，运行该 issue 的 focused verification。
-- batch 完成后，运行能证明 PRD 或 route scope source 的最小 whole-change check。
+- batch 完成后，运行能证明 spec 或 route scope source 的最小 whole-change check。
 - remote submission 前运行 `/code-review` 或 repo-native review gate。
 - 如果 review gate 要并行 helpers，优先使用 pane-local Claude Agent Team 的
   `wayfinder-integration-reviewer`，并显式传入完整 review 包：base commit、
-  integrated diff、PRD 或 route scope source、issues、验证结果、只读要求和输出格式。
+  integrated diff、spec 或 route scope source、tickets、验证结果、只读要求和输出格式。
 - 如果无法形成有效 helper 调用，就在当前 review pane 运行同等的 Standards 和 Spec
   diff review，并把 fallback 记录到 PR/MR evidence。
 
@@ -26,12 +26,12 @@
 
 包含：
 
-- PRD link，或 route 明确跳过 PRD 时的 scope source link。
+- Spec link，或 route 明确跳过 spec 时的 scope source link。
 - 已实现 issue links。
 - Worker pane labels。
 - Integrated commits。
 - Verification commands and results。
-- 被 blocked 或 skipped 的 issues，以及原因。
+- 被 blocked 或 skipped 的 tickets/issues，以及原因。
 - 已知 residual risk。
 
 如果用户尚未授权 remote action，push/open/update 前先问。

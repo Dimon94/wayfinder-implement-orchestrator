@@ -25,7 +25,7 @@
 
 - map issue 没有任何 open in-scope Wayfinder child issues，且没有阻塞 route 判断的
   in-scope Not yet specified fog；停止后进入 `gate-state-machine.md` 的
-  post-discovery route classifier，不要在 frontier loop 内默认进入 PRD；
+  post-discovery route classifier，不要在 frontier loop 内默认进入 spec；
 - frontier query 为 0，但仍有 open blocked child issues；这不是 route 条件，停在
   discovery 的 blocked/waiting 状态，列出阻塞票和前置票；
 - 下一个 frontier child issue 是 `wayfinder:prototype`、`wayfinder:grilling`、
@@ -39,4 +39,4 @@
 创建不可用时的 fallback。Herdr 可用时，直接创建 worker panes。
 
 Lead 负责创建 worker panes。`/wayfinder` worker 可以建议后续 frontier，但不能自己打开
-descendant panes，也不能建议进入 `/to-prd` 或 `/to-issues`。
+descendant panes，也不能建议进入 `/to-spec`、`/to-tickets` 或 `/implement`。

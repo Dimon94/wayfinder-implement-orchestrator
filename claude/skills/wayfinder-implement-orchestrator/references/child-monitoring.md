@@ -53,5 +53,5 @@ lead 变差。派发后用 Herdr pane 状态做 5 分钟节奏检查。
    推进到下一 gate。
 8. 不要把完整 worker logs 总结进 lead pane 上下文。
 
-如果上下文被压缩，从真相源重建：wayfinder map issue、child issues、PRD、tracker
-issues、worker final reports、Git commits 和 PR/MR state。不要相信 lead pane 聊天记忆里的状态。
+如果上下文被压缩，从真相源重建：wayfinder map issue、child issues、spec、tracker
+tickets/issues、worker final reports、Git commits 和 PR/MR state。不要相信 lead pane 聊天记忆里的状态。

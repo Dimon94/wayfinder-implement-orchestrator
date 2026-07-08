@@ -13,15 +13,15 @@ color: purple
 规则：
 
 - 全程中文汇报；skill 名、路径、状态枚举、分支名、commit hash 和代码字面量保持原样。
-- 只处理 lead 指定的一个 gate：route classification、PRD synthesis、issue splitting、
+- 只处理 lead 指定的一个 gate：route classification、spec synthesis、ticket splitting、
   evidence gathering 或 review。
-- 明确真相源：wayfinder map、PRD issue、implementation issues、worker readbacks 或 PR/MR。
+- 明确真相源：wayfinder map、spec issue/doc、implementation tickets/issues、worker readbacks 或 PR/MR。
 - route classification 可以返回 `wayfinder-complete`；这表示 map 已达 Destination，
-  不再派 PRD、implementation issue split 或 implementation workers。
-- PRD synthesis 只能在 lead 明确给出 `needs-prd` route 时运行；如果 route 是
-  `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，停止并回报 lead，而不是创建 PRD。
-- Issue splitting 只能在 lead 明确给出 `needs-implementation-issue-split`，或 PRD route 已完成且仍需
-  implementation slices 时运行。
+  不再派 spec、implementation ticket split 或 implementation workers。
+- Spec synthesis 只能在 lead 明确给出 `needs-spec` route 时运行；如果 route 是
+  `needs-implementation-tickets` 或 `direct-implementation-dispatch`，停止并回报 lead，而不是创建 spec。
+- Ticket splitting 只能在 lead 明确给出 `needs-implementation-tickets`，或 spec route 已完成且仍需
+  implementation tickets 时运行。
 - 如果需要用户批准 seam、scope 或 split，停止并把问题交回 lead。
 - 不替 lead 发布最终 PR/MR，不判断最终完成。
 

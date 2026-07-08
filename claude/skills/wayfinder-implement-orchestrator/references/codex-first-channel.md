@@ -16,7 +16,7 @@
 留在 Claude（`claude-native` 通道）：
 
 - 设计、API 设计、架构、命名、UX 判断
-- 写 spec 本身就是工作的任务（PRD、issue split、dispatch packet 起草；歧义 = 设计）
+- 写 spec 本身就是工作的任务（spec、ticket split、dispatch packet 起草；歧义 = 设计）
 - 微小改动（约 <20 行、单处明显改动）——委托开销不划算
 - 需要会话内工具的任务：MCP、密钥、HITL 用户反馈
 - 破坏性/不可逆操作、push、PR/MR、tracker 写操作（本来就归 lead）

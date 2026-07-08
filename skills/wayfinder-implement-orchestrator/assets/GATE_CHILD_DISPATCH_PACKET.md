@@ -1,23 +1,23 @@
 # 阶段门禁子线程派发包
 
-用于派发一个非实现类门禁子线程：PRD 合成、issue 拆分、只读 review
+用于派发一个非实现类门禁子线程：spec 合成、ticket 拆分、只读 review
 或证据收集。
 
 ```text
 项目：
 父编排线程：
-门禁：prd | issues | review | evidence
-Post-discovery route：wayfinder-complete | needs-prd | needs-implementation-issue-split | direct-implementation-dispatch | n/a
+门禁：spec | tickets | review | evidence
+Post-discovery route：wayfinder-complete | needs-spec | needs-implementation-tickets | direct-implementation-dispatch | n/a
 Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback 的一句话证据>
-路由 skill：/to-prd | /to-issues | /code-review | none
+路由 skill：/to-spec | /to-tickets | /code-review | none
 基线分支：
 基线提交：
 进度快照：<当前门禁；已完成/运行/阻塞/待派发 work items；本 child 的作用；下一门禁或 blocker>
 
 真相源坐标：
 - Wayfinder map issue：
-- PRD：
-- Tracker issues：
+- Spec：
+- Tracker tickets/issues：
 - Research/prototype artifacts：
 - Source worktree：
 
@@ -35,38 +35,38 @@ Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback
   立即停止并报告。
 
 预期产物：
-- PRD URL/body | issue split proposal/issue URLs | review report | evidence
+- Spec URL/body | ticket split proposal/ticket URLs | review report | evidence
 
 Route 保护：
 - 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate child。父线程应报告
   Wayfinder map 已达 Destination 并停止。
-- `prd` 门禁只能在 Post-discovery route 是 `needs-prd` 时运行。若 route 是
-  `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，停止并报告父线程 route/template 错误，
-  不要创建 PRD。
-- `issues` 门禁可以来自 `needs-implementation-issue-split`，也可以来自已完成 PRD 后的切票。若
-  route 是 `direct-implementation-dispatch`，只有在 ready issue readback 失败、缺依赖/批次判断，
-  或父线程明确要求补 issue split 时才运行。
-- 不要把 closed Wayfinder child resolutions 自动整理成 PRD。只有它们缺共同 scope
-  truth source 时才进入 PRD；如果它们已经满足 Destination，route 是
+- `spec` 门禁只能在 Post-discovery route 是 `needs-spec` 时运行。若 route 是
+  `needs-implementation-tickets` 或 `direct-implementation-dispatch`，停止并报告父线程 route/template 错误，
+  不要创建 spec。
+- `tickets` 门禁可以来自 `needs-implementation-tickets`，也可以来自已完成 spec 后的切票。若
+  route 是 `direct-implementation-dispatch`，只有在 ready ticket readback 失败、缺依赖/批次判断，
+  或父线程明确要求补 ticket split 时才运行。
+- 不要把 closed Wayfinder child resolutions 自动整理成 spec。只有它们缺共同 scope
+  truth source 时才进入 spec；如果它们已经满足 Destination，route 是
   `wayfinder-complete`；如果用户要求继续交付且它们已经是 implementation-ready decisions，
-  才进入 `issues` 或 `dispatch`。
+  才进入 `tickets` 或 `dispatch`。
 
-`prd` 和 `issues` 门禁的 tracker 发布保护：
-- 创建 issue 前，先搜索/读取 tracker。先用当前批准 PRD/slice 的精确标题、关键
-  acceptance code literals、父 PRD URL/ID、source map issue/artifact 名称做精确搜索；
+`spec` 和 `tickets` 门禁的 tracker 发布保护：
+- 创建 tracker item 前，先搜索/读取 tracker。先用当前批准 spec/ticket 的精确标题、关键
+  acceptance code literals、父 spec URL/ID、source map issue/artifact 名称做精确搜索；
   再用宽关键词做候选搜索。
 - 只有同时满足这些条件，才算 duplicate 并停止：同一个门禁类型、同一个当前批准
-  PRD 或同一个 slice、相同 acceptance/禁止范围，并且 tracker body 明确指向当前
-  父 PRD/source 坐标或同一份发布意图。
+  spec 或同一个 ticket、相同 acceptance/禁止范围，并且 tracker body 明确指向当前
+  父 spec/source 坐标或同一份发布意图。
 - 以下只算 candidate overlap，不能直接当 duplicate：旧迁移 GitHub issue、明显更宽的
-  历史 PRD、只靠宽关键词命中的旧低 IID issue、挂在旧父 PRD 下的实现 slice、closed
+  历史 spec、只靠宽关键词命中的旧低 IID issue、挂在旧父 spec 下的实现 ticket、closed
   或 stale 项、只覆盖部分术语但 acceptance/禁止范围不同的项。
-- 只有当 Post-discovery route 是 `needs-prd` 时，才使用“implementation issues 不能
-  替代 PRD duplicate”的规则。若 route 是 `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，
-  不要因为缺 PRD 坐标而创建 PRD；implementation issue readback 可以是当前真相源。
-- `issues` 门禁按当前 route truth source 判断 duplicate：同一个已批准 PRD、同一个
-  map/source 坐标，或 route 明确接受的 implementation child source。旧父 PRD 下的同名
-  slice 只能列为迁移/复用候选，不能阻止当前 issue split。
+- 只有当 Post-discovery route 是 `needs-spec` 时，才使用“implementation tickets 不能
+  替代 spec duplicate”的规则。若 route 是 `needs-implementation-tickets` 或 `direct-implementation-dispatch`，
+  不要因为缺 spec 坐标而创建 spec；implementation ticket readback 可以是当前真相源。
+- `tickets` 门禁按当前 route truth source 判断 duplicate：同一个已批准 spec、同一个
+  map/source 坐标，或 route 明确接受的 implementation ticket source。旧父 spec 下的同名
+  ticket 只能列为迁移/复用候选，不能阻止当前 ticket split。
 - 不要用 IID 大小做唯一依据；低 IID 通常是历史信号，高 IID 也不保证当前。最终以
   tracker body、父子关系、source 坐标、acceptance/禁止范围为准。
 - 不要把 Markdown 正文塞进 shell 引号里的 inline string。使用临时 body 文件、
@@ -98,13 +98,13 @@ Final report：
 -
 验证：
 -
-`prd`/`issues` 门禁创建的 tracker items：
+`spec`/`tickets` 门禁创建的 tracker items：
 - <id/url, readback status, dependency state>
 Duplicate/candidate decision：
 - <exact duplicate | candidate overlap | none, ids/urls, reason>
 阻塞：
 -
-下一门禁建议：done | prd | issues | dispatch | integrate | remote-review | ask-user | blocked
+下一门禁建议：done | spec | tickets | dispatch | integrate | remote-review | ask-user | blocked
 
 父线程 handoff message：
 门禁：

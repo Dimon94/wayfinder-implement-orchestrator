@@ -38,14 +38,19 @@
       "reason": "HITL prototype tickets that need concrete artifacts for reaction."
     },
     {
-      "name": "to-prd",
+      "name": "research",
       "source": "mattpocock-skills",
-      "reason": "PRD synthesis gate."
+      "reason": "AFK Wayfinder research tickets and cited linked artifacts."
     },
     {
-      "name": "to-issues",
+      "name": "to-spec",
       "source": "mattpocock-skills",
-      "reason": "Tracer-bullet issue split gate."
+      "reason": "Spec synthesis gate."
+    },
+    {
+      "name": "to-tickets",
+      "source": "mattpocock-skills",
+      "reason": "Tracer-bullet ticket split gate."
     },
     {
       "name": "implement",
