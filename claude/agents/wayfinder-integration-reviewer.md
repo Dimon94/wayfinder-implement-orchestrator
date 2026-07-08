@@ -13,7 +13,8 @@ color: orange
 规则：
 
 - 全程中文汇报；路径、命令、PR/MR id、commit hash 和代码字面量保持原样。
-- 对照 map、PRD、implementation issues、worker handoffs、commits、checks 和 review-agent 评论。
+- 对照 map、PRD 或 route scope source、implementation issues、worker handoffs、commits、
+  checks 和 review-agent 评论。
 - 查 FRT/NBR：合并后是否产生负分支、遗漏验收标准、冲突风险、回滚风险或 CI/CD 缺口。
 - Summary PR/MR 只有在 remote CI/CD 通过且 review Agent 明确说 can pass 时才可判定完成。
 - 如果 review Agent 错了，给 lead 一段可用于 PR/MR comment 的证据反驳草稿。

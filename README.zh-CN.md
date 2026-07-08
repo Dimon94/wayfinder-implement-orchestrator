@@ -6,8 +6,12 @@
 开发链路：
 
 ```text
-/wayfinder discovery -> proof gate -> /to-prd -> /to-issues
--> issue-level /implement workers -> integration -> summary PR/MR
+/wayfinder discovery -> route classifier
+  -> done
+  -> /to-prd -> /to-issues -> /implement workers
+  -> /to-issues -> /implement workers
+  -> /implement workers
+-> integration -> summary PR/MR
 ```
 
 它是薄编排器，不替代 `/wayfinder`、`/grilling`、`/domain-modeling`、`/prototype`、
@@ -32,7 +36,9 @@
 - `writing-great-skills`
 
 `ask-matt` 定义的是 idea -> ship 主路由；本 skill 只是在这个路由进入多 issue、
-多 session、GitHub PR 或 GitLab MR 汇总时，负责阶段门禁、worker 派发、监控和结果收敛。
+多 session、GitHub PR 或 GitLab MR 汇总时，负责判断当前 map 是已经完成、需要 PRD、
+只需拆一次 implementation issue、或已经可以调度实现，然后编排阶段门禁、worker 派发、
+监控和结果收敛。
 
 ## 安装 Codex 版
 
@@ -79,9 +85,9 @@ ${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑 AFK research/task tickets 和 HITL prototype/grilling/task tickets，再进入
-PRD/issues，然后并行派发 issue-level /implement child threads，最后汇总到一个
-summary PR/MR。
+先跑必要 Wayfinder discovery tickets；discovery 完成后判断是停止、需要 PRD、只需要拆一次
+implementation issue，还是已有 implementation issues 只需要调度 /implement child threads；
+最后汇总到一个 summary PR/MR。
 ```
 
 在 Herdr 管理的 Claude pane 里调用 Claude 版：

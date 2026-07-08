@@ -5,7 +5,7 @@
 ```text
 项目：
 父编排线程：
-父 PRD：
+父 PRD/Scope source：<PRD id/url | Wayfinder map/source issue id/url>
 Issue：
 Issue 标题：
 基线分支：
@@ -15,7 +15,8 @@ Tracker URL：
 进度快照：<当前门禁；implementation 已完成/运行/阻塞/待派发数量；本 batch；下一门禁或 blocker>
 
 真相源：
-- PRD：<id/url>
+- PRD：<id/url | none; route skipped PRD because scope is already implementation-ready>
+- Scope source：<map/source issue id/url and route decision>
 - Issue：<id/url>
 - Wayfinder proof：<map issue URL, closed ticket links, artifact paths>
 
@@ -43,7 +44,7 @@ Review gate：
   `spawn_agent`。
 - 如果指定 `agent_type`，不要同时做 full-history/context fork。使用 no-context spawn
   或 `fork_context: false`，并把完整 review 包显式传入：base commit、diff/files、
-  PRD/issue、验收标准、禁止范围、验证结果、只读要求和输出格式。
+  PRD/scope source/issue、验收标准、禁止范围、验证结果、只读要求和输出格式。
 - 如果工具只支持 full-history `fork_thread`，不要指定 `agent_type`；如果无法形成有效
   sub-agent 调用，就在本线程执行同等的 Standards 和 Spec diff review，并在 final
   report 记录 `sub-agent fallback`。

@@ -6,8 +6,12 @@ A personal Codex/Claude skill bundle for orchestrating the Matt Pocock skills
 multi-session delivery flow:
 
 ```text
-/wayfinder discovery -> proof gate -> /to-prd -> /to-issues
--> issue-level /implement workers -> integration -> summary PR/MR
+/wayfinder discovery -> route classifier
+  -> done
+  -> /to-prd -> /to-issues -> /implement workers
+  -> /to-issues -> /implement workers
+  -> /implement workers
+-> integration -> summary PR/MR
 ```
 
 It is a thin orchestrator. It does not replace `/wayfinder`, `/grilling`,
@@ -33,9 +37,10 @@ installed and callable:
 - `code-review`
 - `writing-great-skills`
 
-`ask-matt` defines the idea-to-ship route. This skill only coordinates the part
-where that route becomes multiple issues, multiple sessions, and one final
-GitHub PR or GitLab MR.
+`ask-matt` defines the idea-to-ship route. This skill coordinates the point
+where a map is complete, needs PRD synthesis, needs one implementation issue
+split, or can go straight to implementation scheduling, then carries the work
+across multiple sessions and one final GitHub PR or GitLab MR.
 
 ## Install Codex
 
@@ -83,9 +88,9 @@ Invoke the Codex version explicitly:
 
 ```text
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
-Run AFK research/task tickets and HITL prototype/grilling/task tickets first,
-then PRD/issues, then parallel issue-level /implement child threads, then one
-summary PR/MR.
+Run the necessary Wayfinder discovery tickets first; after discovery completes,
+decide whether to stop, synthesize PRD, split implementation issues, or schedule
+/implement for existing implementation issues; then finish with one summary PR/MR.
 ```
 
 Invoke the Claude version from a Herdr-managed Claude pane:

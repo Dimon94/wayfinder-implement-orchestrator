@@ -1,7 +1,7 @@
 ---
 name: wayfinder-implement-orchestrator
 version: 1.0.0
-description: Orchestrate tracker-backed Wayfinder maps through PRD, issues, issue-level implement threads, and one summary PR/MR.
+description: Orchestrate tracker-backed Wayfinder maps after discovery by deciding whether the current map needs PRD synthesis, one issue-splitting pass, or direct issue-level implementation scheduling, then coordinate implement threads and one summary PR/MR.
 disable-model-invocation: true
 skill_class: user-entry
 route_family: main
@@ -37,7 +37,9 @@ writes: []
    Destination 并 breadth-first 探 fog；如果没有 in-scope fog，说明不需要 map，停止并
    问用户要直接进入哪种单 session 路径，不要创建空 map。
 2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
-   下一门禁。
+   下一门禁；如果 in-scope Wayfinder child issues 都已 closed，已用 post-discovery route classifier
+   选择 `wayfinder-complete`、`needs-prd`、`needs-implementation-issue-split` 或
+   `direct-implementation-dispatch`，并写出证据。
 3. 如果当前 map/gate 涉及根因、因果、冲突、隐藏假设或不确定影响，加载
    `references/toc-thinking-processes.md`。完成标准：当前门禁已有
    TOC 记录，或缺失的 CRT 边、Conflict Cloud 假设、Injection 证据、PRT 障碍、
@@ -69,8 +71,9 @@ writes: []
 - 所有面向用户、子线程、heartbeat、handoff 和 PR/MR comment 的自然语言都用中文。
   skill 名、tool 名、状态枚举、路径、分支名、commit hash 和代码字面量保持原样。
 - 每个门禁只保留一个真相源：discovery 用 `wayfinder:map` issue 和它的 child
-  issues，product scope 用 PRD issue，implementation slices 用 tracker issues，
-  execution 用 child thread readback 加 Git commits，final review 用 PR/MR。
+  issues，product scope 只在 route 选择 `needs-prd` 时用 PRD issue，
+  implementation slices 用 tracker issues，execution 用 child thread readback 加 Git
+  commits，final review 用 PR/MR。
 - 用 TOC 记录判断复杂门禁：discovery 找缺失 CRT 边和 Conflict Cloud 假设，PRD
   写清 what to change / what to change to / how to cause change，issues 拆成
   Injection / prerequisite / transition step，integration 用 FRT/NBR 查合并负分支。
@@ -82,6 +85,23 @@ writes: []
   execution 带进 map 时，才允许 discovery ticket 做超出决策清障的执行。
 - Wayfinder map 的 Destination 固定本轮边界；Not yet specified 只放仍然 in-scope
   但还不能成票的 fog，Out of scope 只放已 ruled beyond destination 的 work。
+- 术语必须分层：Wayfinder child issue/ticket 是 `wayfinder:research`、
+  `wayfinder:prototype`、`wayfinder:grilling` 或 `wayfinder:task`，用于发现和决策；
+  implementation issue 是 `/to-issues` 或人工发布的交付票，用于 `/implement`。不要把
+  closed Wayfinder child issues 当成 implementation issues。
+- Discovery frontier 清空不等于进入 PRD。先读 Destination、Notes、Not yet specified
+  和 closed child resolution comments，判断 map 的产物形态：spec/evidence、
+  implementation-slice decisions，还是已发布 implementation issues。
+- 如果 Destination 已经由 Wayfinder 决策满足，且用户没有要求继续交付到 PRD/issues/
+  implementation，route 是 `wayfinder-complete`：报告地图完成并停止。
+- 只有 route classifier 选择 `needs-prd` 时才派发 `/to-prd`。如果 Destination 已经
+  明确本图产物是可实现决策、实现票或直接移交给实现者，不要再合成 PRD。
+- 只有 route classifier 选择 `needs-implementation-issue-split` 时才派发 `/to-issues`。典型情况是
+  map 已有实现就绪的 closed decisions，但还缺真实 tracker implementation issue IDs、
+  依赖/冲突分组、批次顺序或每票验收正文。
+- 只有 route classifier 选择 `direct-implementation-dispatch` 时才跳到 implementation scheduling。
+  必须已经存在可读回的 implementation issues，且每个 ready item 满足 Implementation
+  Batch 条件。
 - Wayfinder ticket mode 必须显式识别：`Research` 是 AFK，`Prototype` 是 HITL，
   `Grilling` 是 HITL，`Task` 可以是 HITL 或 AFK。HITL ticket 只能通过真人反馈
   resolve；agent 可以给推荐答案，但不能把推荐当成用户回答。
@@ -130,8 +150,9 @@ writes: []
 
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑 AFK research/task tickets 和 HITL prototype/grilling/task tickets，再进入
-PRD/issues，然后并行派发 issue-level /implement threads，最后汇总到一个 summary PR/MR。
+先跑必要 discovery tickets；discovery 完成后判断是需要 PRD、只需要拆一次实现 issue，
+已有 issues 只需要调度 `/implement`，还是 Wayfinder 已完成应停止；最后汇总到一个
+summary PR/MR。
 ```
 
 执行：
@@ -139,13 +160,17 @@ PRD/issues，然后并行派发 issue-level /implement threads，最后汇总到
 1. 运行 wayfinder frontier loop：先读取 Destination、Decisions-so-far、
    Not yet specified 和 Out of scope，再查询 open、未阻塞且 unassigned 的 discovery child
    issues，派发成 fresh `/wayfinder` sessions；每轮结束重读 map issue 和 frontier；
-   重复直到 map 有足够证据进入 PRD，或需要用户判断。
-2. 如果 map 暴露人为 product 或 architecture choice，停止；否则运行 proof gate。
-3. 在边界清晰时使用 fresh PRD synthesis session；遇到 `/to-prd` 需要的 seam
-   approval 时回到父线程停止；然后发布 PRD。
-4. 在边界清晰时使用 fresh issue-splitting session；遇到 issue split approval
-   时回到父线程停止；然后按依赖顺序发布 issues。
-5. 对 ready issues 并行派发，每个 `/implement` child thread 一个填好的 issue
+   重复直到没有可自动 discovery，或需要用户判断。
+2. discovery 完成后运行 post-discovery route classifier：`wayfinder-complete` 停止；
+   `needs-prd` 才进入 PRD；`needs-implementation-issue-split` 直接进入 implementation
+   issue split；`direct-implementation-dispatch` 直接进入 dispatch。
+3. 如果选择 `needs-prd`，用 fresh PRD synthesis session；遇到 `/to-prd` 需要的
+   seam approval 时回到父线程停止；然后发布 PRD，再判断是否需要 issues。
+4. 如果选择 `needs-implementation-issue-split`，用 map/PRD 的当前真相源做一次
+   implementation issue-splitting；遇到 issue split approval 时回到父线程停止；然后按
+   依赖顺序发布 implementation issues。
+5. 如果选择 `direct-implementation-dispatch` 或 issues 已发布，对 ready issues 并行派发，每个
+   `/implement` child thread 一个填好的 issue
    packet。
 6. 创建 5 分钟 child-progress reminder；wake-up 时读取 terminal child reports，
    集成已验证 commits，运行 focused 和 whole-change checks，打开或更新一个 summary

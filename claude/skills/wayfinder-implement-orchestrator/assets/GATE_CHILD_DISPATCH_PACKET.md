@@ -7,9 +7,12 @@
 项目：
 父编排线程：
 门禁：prd | issues | review | evidence
+Post-discovery route：wayfinder-complete | needs-prd | needs-implementation-issue-split | direct-implementation-dispatch | n/a
+Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback 的一句话证据>
 路由 skill：/to-prd | /to-issues | /code-review | none
 基线分支：
 基线提交：
+进度快照：<当前门禁；已完成/运行/阻塞/待派发 work items；本 child 的作用；下一门禁或 blocker>
 
 真相源坐标：
 - Wayfinder map issue：
@@ -34,6 +37,20 @@
 预期产物：
 - PRD URL/body | issue split proposal/issue URLs | review report | evidence
 
+Route 保护：
+- 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate child。父线程应报告
+  Wayfinder map 已达 Destination 并停止。
+- `prd` 门禁只能在 Post-discovery route 是 `needs-prd` 时运行。若 route 是
+  `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，停止并报告父线程 route/template 错误，
+  不要创建 PRD。
+- `issues` 门禁可以来自 `needs-implementation-issue-split`，也可以来自已完成 PRD 后的切票。若
+  route 是 `direct-implementation-dispatch`，只有在 ready issue readback 失败、缺依赖/批次判断，
+  或父线程明确要求补 issue split 时才运行。
+- 不要把 closed Wayfinder child resolutions 自动整理成 PRD。只有它们缺共同 scope
+  truth source 时才进入 PRD；如果它们已经满足 Destination，route 是
+  `wayfinder-complete`；如果用户要求继续交付且它们已经是 implementation-ready decisions，
+  才进入 `issues` 或 `dispatch`。
+
 `prd` 和 `issues` 门禁的 tracker 发布保护：
 - 创建 issue 前，先搜索/读取 tracker。先用当前批准 PRD/slice 的精确标题、关键
   acceptance code literals、父 PRD URL/ID、source map issue/artifact 名称做精确搜索；
@@ -44,10 +61,11 @@
 - 以下只算 candidate overlap，不能直接当 duplicate：旧迁移 GitHub issue、明显更宽的
   历史 PRD、只靠宽关键词命中的旧低 IID issue、挂在旧父 PRD 下的实现 slice、closed
   或 stale 项、只覆盖部分术语但 acceptance/禁止范围不同的项。
-- `prd` 门禁没有现有 PRD 坐标时，implementation issues 不能替代 PRD duplicate。
-  只能把它们列为相关候选；除非已有 PRD issue/doc 明确捕获当前批准 slice，否则继续
-  发布新 PRD 或停止询问用户。
-- `issues` 门禁只在同一个已批准 PRD 父项下判断子 issue duplicate；旧父 PRD 下的同名
+- 只有当 Post-discovery route 是 `needs-prd` 时，才使用“implementation issues 不能
+  替代 PRD duplicate”的规则。若 route 是 `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，
+  不要因为缺 PRD 坐标而创建 PRD；implementation issue readback 可以是当前真相源。
+- `issues` 门禁按当前 route truth source 判断 duplicate：同一个已批准 PRD、同一个
+  map/source 坐标，或 route 明确接受的 implementation child source。旧父 PRD 下的同名
   slice 只能列为迁移/复用候选，不能阻止当前 issue split。
 - 不要用 IID 大小做唯一依据；低 IID 通常是历史信号，高 IID 也不保证当前。最终以
   tracker body、父子关系、source 坐标、acceptance/禁止范围为准。
@@ -86,7 +104,7 @@ Duplicate/candidate decision：
 - <exact duplicate | candidate overlap | none, ids/urls, reason>
 阻塞：
 -
-下一门禁建议：prd | issues | dispatch | integrate | remote-review | ask-user | blocked
+下一门禁建议：done | prd | issues | dispatch | integrate | remote-review | ask-user | blocked
 
 父线程 handoff message：
 门禁：

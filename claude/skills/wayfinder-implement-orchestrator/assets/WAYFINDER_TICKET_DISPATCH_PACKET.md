@@ -47,8 +47,8 @@ Source worktree：
 - 能查到的 fact 自己查；任何 product、architecture、preference 或 risk judgement
   都是 human decision，停止并回报 `ask-user`，不要替用户回答。
 - 不要解决 sibling child issues。
-- 不要创建后续 sessions。把 `/wayfinder` Next steps 留在 final report；
-  父编排线程负责打开下一批 fresh sessions。
+- 不要创建后续 sessions。不要建议进入 `/to-prd`、`/to-issues` 或 `/implement`；
+  父编排线程会重查 map/frontier 再判断下一步。
 - 不要进入 `/implement`。
 - 如果 ticket 是 `wayfinder:task`，只执行让后续 decision 可判断的前置清障；不要把
   task 扩大成实现 Destination 的交付。
@@ -82,11 +82,11 @@ Artifacts：
 -
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
-Wayfinder Next steps：
+父线程下一步提示：
 -
 阻塞：
 -
-下一门禁建议：proof | more-discovery | ask-user | blocked
+下一门禁建议：route | more-discovery | ask-user | blocked
 
 父线程 handoff message：
 Ticket：

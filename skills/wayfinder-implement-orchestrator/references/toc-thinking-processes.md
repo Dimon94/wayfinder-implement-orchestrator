@@ -77,8 +77,12 @@ Omit `Conflict` only when no real tradeoff is driving the bad state. Omit
 ## Orchestration Pattern
 
 - Discovery child issue: answer one missing CRT edge, kill probe, cloud assumption, injection proof, PRT obstacle, or NBR risk.
-- PRD gate: use Cause-forward ECE to state what to change, what to change to,
-  what effects should follow, and how to cause the change.
+- Route gate: use Destination plus closed child resolutions to choose
+  `wayfinder-complete`, `needs-prd`, `needs-implementation-issue-split`, or
+  `direct-implementation-dispatch`.
+- PRD gate: only when route selects `needs-prd`, use Cause-forward ECE to state
+  what to change, what to change to, what effects should follow, and how to
+  cause the change.
 - Issue split gate: each implementation issue is one Injection, prerequisite,
   transition step, or predicted-effect check.
 - Integration gate: run Cause-forward ECE plus FRT/NBR across merged child

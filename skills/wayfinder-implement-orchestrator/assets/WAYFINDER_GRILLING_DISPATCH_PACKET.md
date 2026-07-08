@@ -36,6 +36,8 @@ HITL 目标：
   反馈足够支持 resolution 后才 close。
 - 如果这是 HITL `wayfinder:task`，给出精确 checklist 或执行可自动部分；需要用户
   执行/确认的步骤不能由 agent 代答。
+- 不要建议进入 `/to-prd`、`/to-issues` 或 `/implement`；父编排线程会重查
+  map/frontier 再判断下一步。
 
 真相源：
 - Map issue：<title/link>
@@ -83,11 +85,11 @@ Docs 变更：
 -
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
-Wayfinder Next steps：
+父线程下一步提示：
 -
 阻塞：
 -
-下一门禁建议：proof | more-discovery | ask-user | blocked
+下一门禁建议：route | more-discovery | ask-user | blocked
 
 父线程 handoff message：
 Ticket：
