@@ -14,8 +14,8 @@
    `Task` child issues，使用 `WAYFINDER_TICKET_DISPATCH_PACKET.md`。
    `Prototype`、`Grilling` 和 HITL `Task` 必须有真人参与；没有可参与的用户 pane 时，
    生成对应 prompt/worker 坐标并停止为 `ask-user`。
-4. 派发后使用 `child-monitoring.md`；不要让父线程循环一直开着。
-5. wake-up 时读取 child final reports，然后重读 map issue 的 Destination、
+4. 派发后使用 `child-monitoring.md`；不要让 lead pane 循环一直开着。
+5. 5 分钟检查时读取 worker final reports，然后重读 map issue 的 Destination、
    Decisions-so-far、Not yet specified、Out of scope 和 frontier query。
 6. 只要还有新的 open、未阻塞且 unassigned 的 discovery child issues，就从第 1 步重复。
 
@@ -32,11 +32,11 @@
   HITL `wayfinder:task`，或需要实时用户判断；加载
   `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`，输出一个用于完整 HITL 会话的
   已填写 prompt，然后等待 returned handoff 再继续。不要每个问题创建一个 prompt；
-- child 报告 `ask-user`、`blocked` 或 `Unknown`；
-- 两个 child sessions 编辑了同一个 child issue，或留下冲突 tracker state。
+- worker 报告 `ask-user`、`blocked` 或 `Unknown`；
+- 两个 worker panes 编辑了同一个 child issue，或留下冲突 tracker state。
 
-对非判断类 tickets，copy-paste child prompts 只是 `create_thread` 或 project
-targeting 不可用时的 fallback。Codex thread tools 可用时，直接创建 fresh sessions。
+对非判断类 tickets，copy-paste worker prompts 只是 `HERDR_ENV` 缺失或 Herdr pane
+创建不可用时的 fallback。Herdr 可用时，直接创建 worker panes。
 
-父线程负责创建新线程。`/wayfinder` child 可以建议后续 frontier，但不能自己打开
-descendant sessions，也不能建议进入 `/to-prd` 或 `/to-issues`。
+Lead 负责创建 worker panes。`/wayfinder` worker 可以建议后续 frontier，但不能自己打开
+descendant panes，也不能建议进入 `/to-prd` 或 `/to-issues`。

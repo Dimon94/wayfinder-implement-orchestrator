@@ -48,6 +48,47 @@ def check_references(skill_path: Path) -> None:
         )
 
 
+def check_no_runtime_leaks() -> None:
+    codex_hits = []
+    for path in (ROOT / "skills" / "wayfinder-implement-orchestrator").rglob("*.md"):
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            if re.search(r"Herdr|HERDR_ENV|pane worker|worker pane", line):
+                codex_hits.append(f"{path.relative_to(ROOT)}:{lineno}:{line}")
+    if codex_hits:
+        fail("Herdr runtime leaked into Codex skill:\n" + "\n".join(codex_hits))
+
+    claude_banned = re.compile(
+        r"create_thread|read_thread|send_message_to_thread|automation_update|"
+        r"pendingWorktreeId|threadId|list_projects|spawn_agent|fork_thread|"
+        r"agent_type|fork_context|Codex thread|Codex 线程|child thread|"
+        r"child session|fresh\s+`?/?[A-Za-z-]*`?\s*session|fresh session|"
+        r"child commit|child 报告|父线程|子线程|线程|heartbeat|"
+        r"automation|reminder|wake-up"
+    )
+    claude_hits = []
+    for path in [
+        *(ROOT / "claude" / "skills" / "wayfinder-implement-orchestrator").rglob("*.md"),
+        *(ROOT / "claude" / "agents").glob("wayfinder-*.md"),
+    ]:
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            if claude_banned.search(line):
+                claude_hits.append(f"{path.relative_to(ROOT)}:{lineno}:{line}")
+    if claude_hits:
+        fail("Codex runtime leaked into Claude skill:\n" + "\n".join(claude_hits))
+
+    claude_monitor = (
+        ROOT
+        / "claude"
+        / "skills"
+        / "wayfinder-implement-orchestrator"
+        / "references"
+        / "child-monitoring.md"
+    ).read_text()
+    for required in ("Herdr pane status", "进度快照", "5 分钟检查"):
+        if required not in claude_monitor:
+            fail(f"Claude monitoring missing runtime guard: {required}")
+
+
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text())
     if manifest.get("format") != "codex-claude-skill-bundle/v1":
@@ -100,6 +141,7 @@ def main() -> None:
 
     check_references(CODEX_SKILL)
     check_references(CLAUDE_SKILL)
+    check_no_runtime_leaks()
 
     expected_agents = {
         "wayfinder-frontier-worker.md",

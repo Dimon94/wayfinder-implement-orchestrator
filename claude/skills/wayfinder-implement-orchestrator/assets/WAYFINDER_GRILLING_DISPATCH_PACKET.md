@@ -1,13 +1,13 @@
-# Wayfinder HITL 会话派发包
+# Wayfinder HITL worker pane 派发包
 
 当 wayfinder map issue 走到未阻塞的 `wayfinder:prototype`、`wayfinder:grilling`、
 HITL `wayfinder:task` child issue，或任何需要实时用户判断的 discovery child issue
-时，填写这个 packet。一个 HITL child issue 对应一个用户运行的 fresh thread，承载
-完整真人反馈会话；不要每个问题开一个线程。
+时，填写这个 packet。一个 HITL child issue 对应一个用户运行的 Herdr pane，承载
+完整真人反馈会话；不要每个问题开一个 pane。
 
 ```text
 项目：
-父编排线程：
+Lead pane：
 Wayfinder map issue：
 Ticket issue：
 Ticket title：
@@ -29,14 +29,14 @@ HITL 目标：
 - 一次只问一个问题并等待用户反馈，然后继续问下一个依赖问题，直到这个 ticket
   resolved 或 blocked。
 - 每个问题都给出你的推荐答案；推荐答案不是用户回答，不能用来替用户确认。
-- 不要在第一个回答之后就返回父线程。
+- 不要在第一个回答之后就返回 lead。
 - 如果某个 fact 可以通过探索代码库或已链接 artifacts 回答，就先探索，不要问用户。
   决策、偏好、scope tradeoff 和 risk acceptance 必须由用户回答。
 - 如果这是 `wayfinder:prototype`，先做最小可反应 artifact，再请用户反馈；只有用户
   反馈足够支持 resolution 后才 close。
 - 如果这是 HITL `wayfinder:task`，给出精确 checklist 或执行可自动部分；需要用户
   执行/确认的步骤不能由 agent 代答。
-- 不要建议进入 `/to-prd`、`/to-issues` 或 `/implement`；父编排线程会重查
+- 不要建议进入 `/to-prd`、`/to-issues` 或 `/implement`；lead 会重查
   map/frontier 再判断下一步。
 
 真相源：
@@ -53,9 +53,10 @@ HITL 目标：
 - 禁止范围：
 
 执行规则：
+- 使用独立 Herdr worker pane。
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
 - 如果 ticket 仍 open 且 unassigned，先 assign 给自己并读回确认；如果已分配给
-  别的 session/dev，停止并报告 blocker。
+  别的 pane/dev，停止并报告 blocker。
 - HITL ticket 只能通过真人反馈 resolved；不要让 agent 自问自答或把推荐答案写成
   resolution。
 - resolved 后，把 answer 写成 ticket 的 resolution comment，close ticket，并给
@@ -65,36 +66,34 @@ HITL 目标：
   ticket 或删除 fog，并在 Out of scope 追加 title link + gist + ruled-out reason，不要写入
   Decisions-so-far。
 
-返回父线程：
-- 只有当整个 HITL ticket resolved 或 blocked 后，才查找并使用
-  `send_message_to_thread`。
-- 如果可用，把下面的紧凑父线程 handoff 发给父编排线程。
-- 如果不可用，把紧凑父线程 handoff 放进 final answer，供用户粘贴回父线程。
+返回 lead：
+- 只有当整个 HITL ticket resolved 或 blocked 后，才输出下面的紧凑 handoff。
+- 把紧凑 handoff 放进 final answer，供 lead 收集。
 
 Final report：
 Ticket：
 状态：resolved | blocked
-线程：
+Pane：
 Worktree：
 分支：
 Commit：<hash subject> | none
-父线程 handoff：sent | unavailable | failed <reason>
+Lead handoff：ready
 Tracker 变更：
 -
 Docs 变更：
 -
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
-父线程下一步提示：
+Lead 下一步提示：
 -
 阻塞：
 -
 下一门禁建议：route | more-discovery | ask-user | blocked
 
-父线程 handoff message：
+Lead handoff message：
 Ticket：
 状态：
-线程：
+Pane：
 Tracker 变更：
 Docs 变更：
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：

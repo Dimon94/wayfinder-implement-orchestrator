@@ -1,18 +1,18 @@
-# 阶段门禁子线程派发包
+# 阶段门禁 worker pane 派发包
 
-用于派发一个非实现类门禁子线程：PRD 合成、issue 拆分、只读 review
+用于派发一个非实现类门禁 worker pane：PRD 合成、issue 拆分、只读 review
 或证据收集。
 
 ```text
 项目：
-父编排线程：
+Lead pane：
 门禁：prd | issues | review | evidence
 Post-discovery route：wayfinder-complete | needs-prd | needs-implementation-issue-split | direct-implementation-dispatch | n/a
 Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback 的一句话证据>
 路由 skill：/to-prd | /to-issues | /code-review | none
 基线分支：
 基线提交：
-进度快照：<当前门禁；已完成/运行/阻塞/待派发 work items；本 child 的作用；下一门禁或 blocker>
+进度快照：<当前门禁；已完成/运行/阻塞/待派发 work items；本 worker 的作用；下一门禁或 blocker>
 
 真相源坐标：
 - Wayfinder map issue：
@@ -22,8 +22,7 @@ Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback
 - Source worktree：
 
 目标说明：
-- 如果 Source worktree 不是可创建 Codex 线程的 project target，就在已创建
-  的项目线程里把这些绝对路径当作只读证据读取。
+- 如果 Source worktree 不在当前 worker cwd 内，就把这些绝对路径当作只读外部证据读取。
 
 允许范围：
 - 可以写入/发布：
@@ -38,14 +37,14 @@ Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback
 - PRD URL/body | issue split proposal/issue URLs | review report | evidence
 
 Route 保护：
-- 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate child。父线程应报告
+- 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate worker。Lead 应报告
   Wayfinder map 已达 Destination 并停止。
 - `prd` 门禁只能在 Post-discovery route 是 `needs-prd` 时运行。若 route 是
-  `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，停止并报告父线程 route/template 错误，
+  `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，停止并报告 lead route/template 错误，
   不要创建 PRD。
 - `issues` 门禁可以来自 `needs-implementation-issue-split`，也可以来自已完成 PRD 后的切票。若
   route 是 `direct-implementation-dispatch`，只有在 ready issue readback 失败、缺依赖/批次判断，
-  或父线程明确要求补 issue split 时才运行。
+  或 lead 明确要求补 issue split 时才运行。
 - 不要把 closed Wayfinder child resolutions 自动整理成 PRD。只有它们缺共同 scope
   truth source 时才进入 PRD；如果它们已经满足 Destination，route 是
   `wayfinder-complete`；如果用户要求继续交付且它们已经是 implementation-ready decisions，
@@ -65,7 +64,7 @@ Route 保护：
   替代 PRD duplicate”的规则。若 route 是 `needs-implementation-issue-split` 或 `direct-implementation-dispatch`，
   不要因为缺 PRD 坐标而创建 PRD；implementation issue readback 可以是当前真相源。
 - `issues` 门禁按当前 route truth source 判断 duplicate：同一个已批准 PRD、同一个
-  map/source 坐标，或 route 明确接受的 implementation child source。旧父 PRD 下的同名
+  map/source 坐标，或 route 明确接受的 implementation source。旧父 PRD 下的同名
   slice 只能列为迁移/复用候选，不能阻止当前 issue split。
 - 不要用 IID 大小做唯一依据；低 IID 通常是历史信号，高 IID 也不保证当前。最终以
   tracker body、父子关系、source 坐标、acceptance/禁止范围为准。
@@ -78,22 +77,20 @@ Route 保护：
   创建 ID、失败字段，以及 rerun 是否会造成重复工作。
 
 执行规则：
-- 使用 fresh session。
+- 使用独立 Herdr worker pane。
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
-- 不要再派发子线程。
+- 不要再派发 worker panes。
 - 不要进入 `/implement`。
 - 不要集成、push、打开/更新 PR/MR，也不要评论 PR/MR。
-- 在本子线程 final answer 中输出完整 final report。
-- 如果 `send_message_to_thread` 可用，final report 准备好之后，向父编排线程
-  发送一个紧凑 handoff。
-- 如果无法 handoff 给父线程或 handoff 失败，在 final report 里说明。
+- 在本 worker pane final answer 中输出完整 final report。
+- final report 准备好后，在当前 pane 留下紧凑 handoff，供 lead 收集。
 
 Final report：
 门禁：
 状态：completed | blocked
-线程：
+Pane：
 产物：
-父线程 handoff：sent | unavailable | failed <reason>
+Lead handoff：ready
 已使用的真相源坐标：
 -
 验证：
@@ -106,10 +103,10 @@ Duplicate/candidate decision：
 -
 下一门禁建议：done | prd | issues | dispatch | integrate | remote-review | ask-user | blocked
 
-父线程 handoff message：
+Lead handoff message：
 门禁：
 状态：
-线程：
+Pane：
 产物：
 阻塞：
 下一门禁建议：

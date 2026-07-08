@@ -117,24 +117,16 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   `wayfinder:prototype`、`wayfinder:grilling` 或 `wayfinder:task`，用于发现和决策；
   implementation issue 是 `/to-issues` 或人工发布的交付票，用于 `/implement`。不要把
   closed Wayfinder child issues 当成 implementation issues。
-- Discovery frontier 清空不等于进入 PRD。先读 Destination、Notes、Not yet specified
-  和 closed child resolution comments，判断 map 的产物形态：spec/evidence、
-  implementation-slice decisions，还是已发布 implementation issues。
-- 如果 Destination 已经由 Wayfinder 决策满足，且用户没有要求继续交付到 PRD/issues/
-  implementation，route 是 `wayfinder-complete`：报告地图完成并停止。
-- 只有 route classifier 选择 `needs-prd` 时才派发 `/to-prd`。如果 Destination 已经
-  明确本图产物是可实现决策、实现票或直接移交给实现者，不要再合成 PRD。
-- 只有 route classifier 选择 `needs-implementation-issue-split` 时才派发 `/to-issues`。典型情况是
-  map 已有实现就绪的 closed decisions，但还缺真实 tracker implementation issue IDs、
-  依赖/冲突分组、批次顺序或每票验收正文。
-- 只有 route classifier 选择 `direct-implementation-dispatch` 时才跳到 implementation scheduling。
-  必须已经存在可读回的 implementation issues，且每个 ready item 满足 Implementation
-  Batch 条件。
+- Discovery frontier 清空不等于进入 PRD。加载 `gate-state-machine.md` 的 route
+  classifier，从持久真相源选择一个 route，并且只执行已选 route 的后续 gate。
 - Wayfinder ticket mode 必须显式识别：`Research` 是 AFK，`Prototype` 是 HITL，
   `Grilling` 是 HITL，`Task` 可以是 HITL 或 AFK。HITL ticket 只能通过真人反馈
   resolve；worker 可以给推荐答案，但不能把推荐当成用户回答。
 - `wayfinder:task` 只做让后续 decision 可判断的前置清障，例如申请访问、搬数据或
   暴露事实；它不能变成实现 Destination 的交付票。
+- 每次派发 worker batch 前，从当前 gate 真相源现算一行 `进度快照`，并填入每个
+  dispatch packet；不要把进度写成 map 节点或长期状态。快照只写已验证事实：
+  当前 gate、完成/运行/阻塞数量、正在派发的 batch、下一 gate 或 blocker。
 - 面向人读的 map/ticket 引用用 issue title link；裸 id/number/url 只作为坐标。
 - Discovery worker 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud 假设、
   Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
