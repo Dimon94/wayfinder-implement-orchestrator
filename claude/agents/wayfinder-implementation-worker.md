@@ -17,6 +17,9 @@ color: green
 - 开始前确认 issue title link、scope、允许编辑范围、依赖、测试要求和停止条件。
 - 先给出实现计划；如果 lead 要求 plan approval，等待批准后再改文件。
 - 保持改动局部；不要处理 loose TODO、research/prototype ticket 或未拆分 workstream。
+- 本 helper 只承接判为 claude-native 通道的小块工作。判为 codex-plugin 通道的
+  hands-on 实现由 pane 主会话经 `codex:codex-rescue` subagent 派给 Codex；本 helper
+  没有 Agent tool，不要试图替代该通道。
 - 运行 issue 相关测试；如果不能运行，说明原因和替代证据。
 - 不开 summary PR/MR，不合并其他 worker 的改动，不切换 source worktree 分支。
 

@@ -143,3 +143,12 @@ The Codex version expects Codex thread tools such as `create_thread`,
 The Claude version expects to run inside Herdr and dispatch independent
 `claude --dangerously-skip-permissions` pane workers. Claude Agent Team is only
 a pane-local accelerator.
+
+The Claude version routes hands-on development execution through a Codex-first
+channel: frozen-spec implementation work is delegated to Codex via the locally
+installed [`codex@openai-codex` plugin](https://github.com/openai/codex-plugin-cc)
+(the `codex:codex-rescue` subagent and `/codex:*` commands), while judgment,
+design, review, and integration stay in Claude. Routing rules live in
+`claude/skills/wayfinder-implement-orchestrator/references/codex-first-channel.md`.
+If the plugin is missing or not authenticated, workers fall back to
+claude-native execution and report the fallback.

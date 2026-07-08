@@ -30,6 +30,18 @@
 - 有争议的 review-agent comments：如果 verdict 不明显，用 read-only worker 收集
   证据，然后 lead 发布 PR/MR rebuttal/adaptation note。
 
+## 执行通道
+
+Boundaries 决定 work item 跑在哪个 pane；`codex-first-channel.md` 决定该 pane 里
+hands-on 工作由谁执行。派发前给每个可执行 work item 标注 `codex-plugin` 或
+`claude-native`。
+
+- Implementation worker pane：spec 已冻结的写码工作默认 `codex-plugin`；微小改动、
+  需要会话内工具或插件不可用时 `claude-native`。
+- Discovery `Research` 的大批量代码阅读：可经 `codex-plugin` 只读工单委托；决策、
+  ticket resolution 和 map 写操作永远留在 Claude。
+- Grilling、PRD、issue split、review、integration、remote 操作：永远 `claude-native`。
+
 ## Lead 持有
 
 - Human judgement gates 和 user questions。

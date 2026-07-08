@@ -138,3 +138,9 @@ Codex 版执行编排链路时依赖 Codex thread tools，例如 `create_thread`
 Claude 版预期在 Herdr 内运行，并派发独立的
 `claude --dangerously-skip-permissions` pane workers。Claude Agent Team 只作为单个 pane
 内的局部加速器。
+
+Claude 版的 hands-on 开发执行走 Codex-first 通道：spec 已冻结的实现型工作经本机安装的
+[`codex@openai-codex` 插件](https://github.com/openai/codex-plugin-cc)（`codex:codex-rescue`
+subagent 与 `/codex:*` commands）派给 Codex 执行；判断、设计、review 和集成留在 Claude。
+路由规则见 `claude/skills/wayfinder-implement-orchestrator/references/codex-first-channel.md`。
+插件未安装或未登录时，workers 回退为 claude-native 执行并在回报中标注。

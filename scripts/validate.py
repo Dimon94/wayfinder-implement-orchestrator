@@ -60,7 +60,7 @@ def check_no_runtime_leaks() -> None:
     claude_banned = re.compile(
         r"create_thread|read_thread|send_message_to_thread|automation_update|"
         r"pendingWorktreeId|threadId|list_projects|spawn_agent|fork_thread|"
-        r"agent_type|fork_context|Codex thread|Codex 线程|child thread|"
+        r"(?<!sub)agent_type|fork_context|Codex thread|Codex 线程|child thread|"
         r"child session|fresh\s+`?/?[A-Za-z-]*`?\s*session|fresh session|"
         r"child commit|child 报告|父线程|子线程|线程|heartbeat|"
         r"automation|reminder|wake-up"
@@ -87,6 +87,24 @@ def check_no_runtime_leaks() -> None:
     for required in ("Herdr pane status", "进度快照", "5 分钟检查"):
         if required not in claude_monitor:
             fail(f"Claude monitoring missing runtime guard: {required}")
+
+    claude_channel = (
+        ROOT
+        / "claude"
+        / "skills"
+        / "wayfinder-implement-orchestrator"
+        / "references"
+        / "codex-first-channel.md"
+    ).read_text()
+    for required in (
+        "codex@openai-codex",
+        "codex:codex-rescue",
+        "--fresh",
+        "--resume",
+        "raw Codex CLI",
+    ):
+        if required not in claude_channel:
+            fail(f"Claude codex channel missing plugin guard: {required}")
 
 
 def main() -> None:

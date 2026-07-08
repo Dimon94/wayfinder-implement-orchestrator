@@ -24,6 +24,16 @@ Tracker URL：
 - 调用 /implement。
 - 只实现这个 issue。
 
+执行通道：
+- 通道：codex-plugin | claude-native
+- 判定依据：<codex-first 规则一行，例如 spec 已冻结的实现工单 / 约 <20 行微小改动>
+- codex-plugin 时：hands-on 写码在本 pane 用 Agent tool 调 `codex:codex-rescue`
+  （subagent_type: "codex:codex-rescue"，插件 codex@openai-codex），工单按
+  `references/codex-first-channel.md` 的工单契约书写；首轮 `--fresh --write`，
+  修复轮 `--resume`；连续 2 轮失败收回 claude-native。
+- 禁止手写 raw Codex CLI；review gate 与 commit 始终由本 pane 的 Claude 完成。
+- 插件不可用时按 claude-native 继续，并在 readback 标注 `channel fallback`。
+
 允许范围：
 - 可改路径：
 - 可变资源：
@@ -73,6 +83,7 @@ Commit：<hash subject> | none
 Lead handoff：ready
 验证：
 - <command>: pass | fail | blocked
+执行通道：codex-plugin <轮数> | claude-native | channel fallback <原因>
 Review：pass | blocked | helper fallback <summary>
 Dirty state：clean | dirty <files>
 已改文件：
@@ -87,6 +98,7 @@ Issue：
 Pane：
 Commit：
 验证：
+执行通道：
 Review：
 Dirty state：
 阻塞：
