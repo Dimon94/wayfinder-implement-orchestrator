@@ -39,20 +39,31 @@ space。用户随时在切换视图，裸命令等于把 worker 派进随机 spa
 - 批次收尾、space 内 panes 全部关闭后，用 `herdr workspace close <id>` 关闭空的
   溢出 space。
 
-## 标准创建命令
+## 标准创建命令（原子对：创建 + 投递）
 
-```
+每个 worker 必须走完下面三步再开始下一个 worker，不要批量建完再统一发 prompt：
+
+```bash
+# 1. 创建 pane 并启动 claude
 herdr agent start <pane-label> \
   --workspace <workspace_id> \
   --cwd <worktree-or-repo-path> \
   --no-focus \
   -- claude --dangerously-skip-permissions
+
+# 2. 拿到 pane_id 后立即投递 dispatch packet
+herdr pane send-text <pane_id> '<filled-dispatch-packet>'
+
+# 3. 验证落点（见下节）
 ```
 
 需要在已有 pane 旁精确布局时改用：
-`herdr pane split --pane <pane_id> --direction right|down --ratio 0.5 --cwd <path> --no-focus`，
-然后 `herdr pane rename <new-pane> <pane-label>`，
-再 `herdr pane run <new-pane> 'claude --dangerously-skip-permissions'`。
+```bash
+herdr pane split --pane <pane_id> --direction right|down --ratio 0.5 --cwd <path> --no-focus
+herdr pane rename <new-pane> <pane-label>
+herdr pane run <new-pane> 'claude --dangerously-skip-permissions'
+herdr pane send-text <new-pane> '<filled-dispatch-packet>'
+```
 
 ## 创建后验证（每个 pane 必做）
 

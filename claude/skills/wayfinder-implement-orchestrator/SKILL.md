@@ -86,8 +86,12 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   `claude --dangerously-skip-permissions`。模型使用当前 Claude 配置，不在 dispatch
   中强制切换。Prompt 必须包含：map/issue title link、目标 gate、真相源、允许编辑范围、
   禁止动作、完成标准、回报格式、blocked 时要问用户的问题格式。
-- 多个独立 work items 要先创建完整 worker set，再监控状态；不要串行化独立 discovery /
-  grilling / implementation work。
+- 每个 worker 的 pane 创建和 prompt 投递是原子对：`herdr agent start` 成功后立即
+  `herdr pane send-text <pane_id> <filled-dispatch-packet>`，确认 prompt 已贴入再
+  创建下一个 worker pane。不要批量建完所有 pane 再统一发 prompt——空 pane 窗口浪费
+  时间且让 agent list 显示假 idle。
+- 多个独立 work items 的 **执行** 不串行化：所有 workers 拿到 prompt 后同时运行，
+  lead 不等 worker A 完成再派发 worker B；但派发动作本身（创建 + 投递）是顺序的。
 - Prototype、Grilling 和 HITL Task workers 在需要用户回答时必须在自己的 pane 里留下
   清晰问题，并进入 blocked。推荐答案只能帮助用户判断，不能替用户确认。
 - Implementation workers 一个 tracker issue 一个 worktree 一个 pane。会改文件的 worker
