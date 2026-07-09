@@ -39,6 +39,30 @@ space。用户随时在切换视图，裸命令等于把 worker 派进随机 spa
 - 批次收尾、space 内 panes 全部关闭后，用 `herdr workspace close <id>` 关闭空的
   溢出 space。
 
+## 复用默认 pane（新建 workspace 时必做）
+
+`herdr workspace create` 会产生一个默认空 shell pane。**必须把它复用为第一个
+worker**，不要闲置——否则 space 里出现一栏空 shell，白占 slot 且视觉混乱。
+
+新建 workspace 后的第一个 worker 流程：
+
+```bash
+# 1. 取得默认 pane id
+default_pane=$(herdr pane list --workspace <workspace_id> | python3 -c "
+import json,sys; panes=json.load(sys.stdin)
+print(panes[0]['id'])
+")
+
+# 2. 把默认 pane 变成第一个 worker
+herdr pane rename "$default_pane" <first-worker-label>
+herdr pane run "$default_pane" 'claude --dangerously-skip-permissions'
+herdr pane send-text "$default_pane" '<filled-dispatch-packet>'
+
+# 3. 验证落点（见下节）
+```
+
+同一 space 里的后续 workers 用标准创建命令。
+
 ## 标准创建命令（原子对：创建 + 投递）
 
 每个 worker 必须走完下面三步再开始下一个 worker，不要批量建完再统一发 prompt：
