@@ -9,15 +9,15 @@ lead 变差。派发后用 Herdr pane 状态做 5 分钟节奏检查。
 
 ## 设置
 
-- 声称已进入监控前，确认每个 worker pane 已在 Herdr agent list 中出现，并有稳定
-  label、work item ID、真相源和停止条件。
+- 声称已进入监控前，确认每个 worker pane 已在 Herdr agent list 中出现、落在派发
+  记录的目标 space（workspace）里，并有稳定 label、work item ID、真相源和停止条件。
 - 对每个 worker 做 startup probe：打开对应 pane，确认 prompt 已贴入、`claude`
   会话已启动，或已有非空 final report。
 - 如果 pane 创建失败、pane 为空、进程未启动，或 prompt 不完整，用同一个 packet
   创建替代 pane，更新 worker 坐标，并把旧 pane 标为 ignored。如果替代 pane 也无法
   通过 startup probe，停止并询问用户。
-- 记录稳定坐标：pane label、work item ID、worktree/path、branch、tracker links、
-  ignored pane labels 和下一 gate。
+- 记录稳定坐标：space（workspace）label 与 id、pane label、work item ID、
+  worktree/path、branch、tracker links、ignored pane labels 和下一 gate。
 - 包含派发时的 `进度快照`；每次检查只能从真相源重算进度，不沿用旧快照当事实。
 - Herdr pane status 是 worker lifecycle 的真相源。
 - 如果 Herdr status 不可读，保留同一组坐标停止，并给出手动 5 分钟检查清单。

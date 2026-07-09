@@ -12,7 +12,9 @@ description: Orchestrate tracker-backed Wayfinder maps after discovery by decidi
 ## Execution Model
 
 **Herdr pane workers are the default.** Discovery、grilling、gate、implementation 和
-review work 都派发到 sibling Herdr panes，每个 pane 运行一个独立 `claude` 会话。
+review work 都派发到 Herdr panes；落点不是"当前聚焦的 space"，而是按
+`references/herdr-pane-placement.md` 绑定到 map/issue 对应的 space（workspace）。
+每个 pane 运行一个独立 `claude` 会话。
 Worker panes 必须用 `claude --dangerously-skip-permissions` 启动。模型不强制，使用
 当前 Claude 配置。
 这样 Herdr 左侧 agent list 能显示 worker 的 `idle` / `working` / `blocked` / `done`，
@@ -60,17 +62,26 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
    - grilling：`assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`
    - implementation：`assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md` 和
      `references/codex-first-channel.md`
-6. workers 正在运行时加载 `references/child-monitoring.md`。完成标准：每个 worker 都有
+6. 创建、补建或替换任何 Herdr pane 前加载 `references/herdr-pane-placement.md`。
+   完成标准：每个 worker 的目标 space 已按 map key 解析并显式写入创建命令；目标
+   space 满员时溢出 space 已按同名加尾号确定；每个新 pane 已验证落点。
+7. workers 正在运行时加载 `references/child-monitoring.md`。完成标准：每个 worker 都有
    pane label、任务、真相源、停止条件和回报格式。
-7. 收尾 summary PR/MR 时加载 `references/remote-closeout-checklist.md`。完成标准：
+8. 收尾 summary PR/MR 时加载 `references/remote-closeout-checklist.md`。完成标准：
    worker results、commits、checks、issue links、CI/CD 和 review-agent verdicts 已映射。
 
 ## Pane Dispatch Rules
 
 - 创建 workers 前确认 `HERDR_ENV=1`。缺失时不要假装并行派发。
-- 使用 `herdr` CLI 创建 sibling panes，并给每个 pane 稳定 label，例如
+- 使用 `herdr` CLI 创建 worker panes，并给每个 pane 稳定 label，例如
   `wf-grill-auth-boundary`、`wf-research-api-shape`、`wf-impl-issue-42`、
   `wf-review-summary-pr`。
+- Pane 落点必须显式指定：按 `references/herdr-pane-placement.md` 把 map/issue 绑定到
+  目标 space，创建命令必须带 `--workspace <id>`（或 `--pane <id>`/`--current`）和
+  `--no-focus`。禁止裸 `herdr pane split` / `herdr agent start`——它们的落点是用户
+  当前聚焦的 space，会把 worker 派进无关 space。
+- 每个 space 默认最多 4 个 panes。目标 space 满员时，按同名加尾号创建或复用溢出
+  space（如 `剧本格式#608-2`）再派发；不要把第 5 个 pane 挤进同一个 space。
 - 每个 worker pane 运行独立 Claude 会话，启动命令必须是
   `claude --dangerously-skip-permissions`。模型使用当前 Claude 配置，不在 dispatch
   中强制切换。Prompt 必须包含：map/issue title link、目标 gate、真相源、允许编辑范围、

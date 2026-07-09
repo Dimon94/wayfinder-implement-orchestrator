@@ -106,6 +106,25 @@ def check_no_runtime_leaks() -> None:
         if required not in claude_channel:
             fail(f"Claude codex channel missing plugin guard: {required}")
 
+    claude_placement = (
+        ROOT
+        / "claude"
+        / "skills"
+        / "wayfinder-implement-orchestrator"
+        / "references"
+        / "herdr-pane-placement.md"
+    ).read_text()
+    for required in (
+        "--workspace",
+        "--no-focus",
+        "herdr workspace list",
+        "herdr pane list --workspace",
+        "同名加尾号",
+        "herdr pane get",
+    ):
+        if required not in claude_placement:
+            fail(f"Claude pane placement missing guard: {required}")
+
 
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text())
