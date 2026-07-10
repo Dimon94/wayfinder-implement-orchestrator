@@ -26,6 +26,18 @@
 混合任务：Claude 先定设计、冻结工单，再把 build-out 派给 Codex。
 判定启发：dispatch 工单读起来像工作指令 → Codex；写工单时被迫做设计决定 → Claude。
 
+## 地图级通道确认（实现派发前，一次）
+
+派发本地图第一个 implementation issue 之前，lead 必须把整张地图的通道分配方案交给
+用户确认一次：每个 implementation issue 一行——issue title link、拟定通道
+（`codex-pane` / `claude-native`）、一句判定依据。用户确认后，该方案对本地图所有
+implementation issues 生效，后续派发不再逐票询问。
+
+- 后加入的 issue 符合已确认方案的判定标准时直接沿用，不重新确认。
+- 运行期回退（codex pane 起不来、连续 2 轮验证不过收回 `claude-native`）不需要
+  重新确认，但必须在 readback 的 `执行通道` 行写明。
+- lead 想主动偏离已确认方案（非回退原因改通道）时，必须重新问用户。
+
 ## 调用契约（Herdr pane 派发）
 
 - 派发面：lead 按 `herdr-pane-placement.md` 创建 codex pane，与 claude pane 完全同规——
