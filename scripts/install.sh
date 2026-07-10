@@ -14,11 +14,11 @@ Usage: ./scripts/install.sh [--target codex|claude|all] [--skip-deps-check]
 
 Default target: codex
 
-Installs $SKILL_NAME to one or both:
-  \${CODEX_HOME:-~/.codex}/skills/$SKILL_NAME (symlink to this checkout)
+Installs $SKILL_NAME to one or both (all targets symlink to this checkout):
+  \${CODEX_HOME:-~/.codex}/skills/$SKILL_NAME
   \${CLAUDE_HOME:-~/.claude}/skills/$SKILL_NAME
 
-Claude helper agents install to:
+Claude helper agents install to (per-file symlinks):
   \${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 EOF
 }
@@ -101,11 +101,13 @@ install_claude() {
 
   rm -rf "$skill_dest"
   mkdir -p "$(dirname "$skill_dest")" "$agents_dest"
-  cp -R "$skill_source" "$skill_dest"
-  cp "$agents_source"/wayfinder-*.md "$agents_dest"/
+  ln -s "$skill_source" "$skill_dest"
+  for agent in "$agents_source"/wayfinder-*.md; do
+    ln -sf "$agent" "$agents_dest/$(basename "$agent")"
+  done
 
-  echo "Installed Claude $SKILL_NAME to $skill_dest"
-  echo "Installed Claude wayfinder agents to $agents_dest"
+  echo "Symlinked Claude $SKILL_NAME to $skill_dest -> $skill_source"
+  echo "Symlinked Claude wayfinder agents into $agents_dest"
 }
 
 if [ "$SKIP_DEPS" -eq 0 ] && { [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; }; then

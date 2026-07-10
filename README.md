@@ -72,12 +72,15 @@ the dependency check:
 ./scripts/install.sh --target claude
 ```
 
-This installs:
+This installs symlinks to this checkout:
 
 ```text
 ${CLAUDE_HOME:-~/.claude}/skills/wayfinder-implement-orchestrator
 ${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 ```
+
+After updating this repo, start a new Claude session to pick up the symlinked
+skill and agents.
 
 To install both targets:
 

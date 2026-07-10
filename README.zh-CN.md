@@ -69,12 +69,14 @@ ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 ./scripts/install.sh --target claude
 ```
 
-会安装到：
+会以软链接形式安装（指向本 checkout）：
 
 ```text
 ${CLAUDE_HOME:-~/.claude}/skills/wayfinder-implement-orchestrator
 ${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 ```
+
+以后更新这个仓库后，新开 Claude 会话即可读到软链接指向的新版本。
 
 同时安装 Codex 和 Claude：
 
