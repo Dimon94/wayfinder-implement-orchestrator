@@ -55,7 +55,7 @@ print(panes[0]['id'])
 
 # 2. 把默认 pane 变成第一个 worker
 herdr pane rename "$default_pane" <first-worker-label>
-herdr pane run "$default_pane" 'claude --dangerously-skip-permissions'
+herdr pane run "$default_pane" '<worker 启动命令>'
 herdr pane send-text "$default_pane" '<filled-dispatch-packet>'
 
 # 3. 验证落点（见下节）
@@ -65,15 +65,17 @@ herdr pane send-text "$default_pane" '<filled-dispatch-packet>'
 
 ## 标准创建命令（原子对：创建 + 投递）
 
-每个 worker 必须走完下面三步再开始下一个 worker，不要批量建完再统一发 prompt：
+每个 worker 必须走完下面三步再开始下一个 worker，不要批量建完再统一发 prompt。
+`<worker 启动命令>` 按执行通道取值：claude pane 用 `claude --dangerously-skip-permissions`，
+codex pane 用 `codex -s workspace-write -a never`（见 `codex-first-channel.md`）：
 
 ```bash
-# 1. 创建 pane 并启动 claude
+# 1. 创建 pane 并启动 worker agent
 herdr agent start <pane-label> \
   --workspace <workspace_id> \
   --cwd <worktree-or-repo-path> \
   --no-focus \
-  -- claude --dangerously-skip-permissions
+  -- <worker 启动命令>
 
 # 2. 拿到 pane_id 后立即投递 dispatch packet
 herdr pane send-text <pane_id> '<filled-dispatch-packet>'
@@ -85,7 +87,7 @@ herdr pane send-text <pane_id> '<filled-dispatch-packet>'
 ```bash
 herdr pane split --pane <pane_id> --direction right|down --ratio 0.5 --cwd <path> --no-focus
 herdr pane rename <new-pane> <pane-label>
-herdr pane run <new-pane> 'claude --dangerously-skip-permissions'
+herdr pane run <new-pane> '<worker 启动命令>'
 herdr pane send-text <new-pane> '<filled-dispatch-packet>'
 ```
 

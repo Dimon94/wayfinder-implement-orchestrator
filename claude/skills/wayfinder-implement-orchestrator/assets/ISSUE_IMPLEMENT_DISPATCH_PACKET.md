@@ -1,6 +1,8 @@
 # Issue 实现 worker pane 派发包
 
-用于派发一个 issue-level `/implement` worker pane。不要发送半截 prompt。
+用于派发一个 issue-level `/implement` claude worker pane（`claude-native` 通道）。
+判为 `codex-pane` 通道的 issue 不用本包，改用 `CODEX_PANE_DISPATCH_PACKET.md` 直接
+派独立 codex pane。不要发送半截 prompt。
 
 ```text
 项目：
@@ -25,14 +27,11 @@ Tracker URL：
 - 只实现这个 issue。
 
 执行通道：
-- 通道：codex-plugin | claude-native
-- 判定依据：<codex-first 规则一行，例如 spec 已冻结的实现工单 / 约 <20 行微小改动>
-- codex-plugin 时：hands-on 写码在本 pane 用 Agent tool 调 `codex:codex-rescue`
-  （subagent_type: "codex:codex-rescue"，插件 codex@openai-codex），工单按
-  `references/codex-first-channel.md` 的工单契约书写；首轮 `--fresh --write`，
-  修复轮 `--resume`；连续 2 轮失败收回 claude-native。
-- 禁止手写 raw Codex CLI；review gate 与 commit 始终由本 pane 的 Claude 完成。
-- 插件不可用时按 claude-native 继续，并在 readback 标注 `channel fallback`。
+- 通道：claude-native
+- 判定依据：<codex-first 规则一行，例如 约 <20 行微小改动 / 需要会话内工具 /
+  codex-pane 连续 2 轮失败收回>
+- hands-on 写码由本 pane 的 Claude 自己完成；不要在 Bash 里手搓 `codex exec` 转包。
+- 若本 issue 是从 codex-pane 收回的，在 readback 标注 `channel fallback <原因>`。
 
 允许范围：
 - 可改路径：
@@ -83,7 +82,7 @@ Commit：<hash subject> | none
 Lead handoff：ready
 验证：
 - <command>: pass | fail | blocked
-执行通道：codex-plugin <轮数> | claude-native | channel fallback <原因>
+执行通道：claude-native | channel fallback <原因>
 Review：pass | blocked | helper fallback <summary>
 Dirty state：clean | dirty <files>
 已改文件：

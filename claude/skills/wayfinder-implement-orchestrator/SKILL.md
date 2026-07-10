@@ -14,21 +14,23 @@ description: Orchestrate tracker-backed Wayfinder maps after discovery by decidi
 **Herdr pane workers are the default.** Discovery、grilling、gate、implementation 和
 review work 都派发到 Herdr panes；落点不是"当前聚焦的 space"，而是按
 `references/herdr-pane-placement.md` 绑定到 map/issue 对应的 space（workspace）。
-每个 pane 运行一个独立 `claude` 会话。
-Worker panes 必须用 `claude --dangerously-skip-permissions` 启动。模型不强制，使用
-当前 Claude 配置。
-这样 Herdr 左侧 agent list 能显示 worker 的 `idle` / `working` / `blocked` / `done`，
-用户也能直接点进 grilling pane 回答问题。
+每个 pane 按执行通道运行一个独立 agent 会话：`claude` 或 `codex`。
+Claude worker panes 必须用 `claude --dangerously-skip-permissions` 启动；Codex worker
+panes 按 `references/codex-first-channel.md` 用 `codex -s workspace-write -a never`
+启动。模型不强制，使用各自当前配置。
+这样 Herdr 左侧 agent list 能显示两类 worker 的 `idle` / `working` / `blocked` / `done`
+（herdr 的 claude 与 codex integration 都必须已安装），用户也能直接点进 grilling 或
+codex pane 查看与回答。
 
 Claude Agent Team 只作为 **pane-local accelerator**：某个 worker pane 内需要短时并行
 research、review 或 competing hypotheses 时，可以在那个 pane 内使用 Agent Team。它不
 拥有全局 worker lifecycle，不替代 Herdr panes，也不直接更新 map、spec、tickets 或 PR/MR。
 
-开发执行通道按 `references/codex-first-channel.md` 判定：pane 拓扑决定 work item 跑在
-哪，通道决定 pane 里 hands-on 写码交给谁。spec 已冻结的实现型工作默认经本机安装的
-`codex@openai-codex` 插件（GitHub: openai/codex-plugin-cc）派给 Codex；判断、设计、
-工单、review、集成永远留在 Claude。调度 Codex 只允许使用插件能力——
-`codex:codex-rescue` subagent 和 `/codex:*` commands——禁止手写 raw Codex CLI。
+开发执行通道按 `references/codex-first-channel.md` 判定：通道决定该 work item 的 pane
+里跑哪个 agent。spec 已冻结的实现型工作默认派成独立 codex pane（`codex-pane` 通道），
+与 claude panes 共用同一套落点、监控和状态；判断、设计、工单、review、集成永远留在
+Claude。调度 Codex 只允许 Herdr pane 派发——禁止在任何 Claude 会话的 Bash 里手搓
+`codex exec` 兜底。
 
 如果 `HERDR_ENV=1` 不存在，停止创建 workers，输出可复制的 manual worker packets，并说明
 需要从 Herdr-managed pane 运行。
@@ -53,15 +55,15 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
    user stop / `Unknown`。
 4. 加载 `references/fresh-session-boundaries.md` 和 `references/codex-first-channel.md`。
    完成标准：每个 work item 已分类为 Herdr pane worker、pane-local Agent Team helper、
-   lead-owned gate 或 user stop；每个可执行 work item 已标注执行通道 `codex-plugin`
+   lead-owned gate 或 user stop；每个可执行 work item 已标注执行通道 `codex-pane`
    或 `claude-native`，并记录判定依据。
 5. 按即将派发的 work 类型加载 dispatch packet：
    - gate/review/evidence：`assets/GATE_CHILD_DISPATCH_PACKET.md`
    - discovery：`references/wayfinder-frontier-loop.md` 和
      `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`
    - grilling：`assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`
-   - implementation：`assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md` 和
-     `references/codex-first-channel.md`
+   - implementation：`assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`、
+     `assets/CODEX_PANE_DISPATCH_PACKET.md` 和 `references/codex-first-channel.md`
 6. 创建、补建或替换任何 Herdr pane 前加载 `references/herdr-pane-placement.md`。
    完成标准：每个 worker 的目标 space 已按 map key 解析并显式写入创建命令；目标
    space 满员时溢出 space 已按同名加尾号确定；每个新 pane 已验证落点。
@@ -82,9 +84,11 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   当前聚焦的 space，会把 worker 派进无关 space。
 - 每个 space 默认最多 4 个 panes。目标 space 满员时，按同名加尾号创建或复用溢出
   space（如 `剧本格式#608-2`）再派发；不要把第 5 个 pane 挤进同一个 space。
-- 每个 worker pane 运行独立 Claude 会话，启动命令必须是
-  `claude --dangerously-skip-permissions`。模型使用当前 Claude 配置，不在 dispatch
-  中强制切换。Prompt 必须包含：map/issue title link、目标 gate、真相源、允许编辑范围、
+- 每个 worker pane 运行独立 agent 会话，启动命令按通道：claude pane 必须是
+  `claude --dangerously-skip-permissions`，codex pane 必须是
+  `codex -s workspace-write -a never`（升级 flag 只能由 lead 按
+  `references/codex-first-channel.md` 显式决定）。模型使用各自当前配置，不在
+  dispatch 中强制切换。Prompt 必须包含：map/issue title link、目标 gate、真相源、允许编辑范围、
   禁止动作、完成标准、回报格式、blocked 时要问用户的问题格式。
 - 每个 worker 的 pane 创建和 prompt 投递是原子对：`herdr agent start` 成功后立即
   `herdr pane send-text <pane_id> <filled-dispatch-packet>`，确认 prompt 已贴入再
@@ -94,12 +98,13 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
   lead 不等 worker A 完成再派发 worker B；但派发动作本身（创建 + 投递）是顺序的。
 - Prototype、Grilling 和 HITL Task workers 在需要用户回答时必须在自己的 pane 里留下
   清晰问题，并进入 blocked。推荐答案只能帮助用户判断，不能替用户确认。
-- Implementation workers 一个 tracker issue 一个 worktree 一个 pane。会改文件的 worker
-  先产出 plan；lead 批准后才实现。避免多个 panes 编辑同一文件或同一迁移序列。
-- Implementation pane 内 hands-on 写码默认走 `codex-plugin` 通道：worker 按
-  `references/codex-first-channel.md` 把冻结好的工单经 `codex:codex-rescue` subagent
-  派给 Codex；Claude 侧负责工单、diff review、验证和 commit。通道决定与回退情况必须
-  写进 dispatch packet 和 worker readback。
+- Implementation workers 一个 tracker issue 一个 worktree 一个 pane（两种通道都适用）。
+  会改文件的 claude worker 先产出 plan，lead 批准后才实现；codex pane 的计划由 lead
+  在工单里冻结后再派发。避免多个 panes 编辑同一文件或同一迁移序列。
+- Implementation issue 默认走 `codex-pane` 通道：lead 按
+  `references/codex-first-channel.md` 用 `assets/CODEX_PANE_DISPATCH_PACKET.md` 把冻结
+  好的工单直接派进独立 codex pane；Claude 侧负责工单、diff review、验证和 commit，
+  codex pane 永不 review 自己。通道决定与回退情况必须写进 dispatch packet 和 readback。
 - Lead 只拥有 gates、用户判断、scope approval、ticket split approval、integration、
   remote comments、PR/MR authority 和最终完成判断。
 
@@ -192,8 +197,8 @@ research、review 或 competing hypotheses 时，可以在那个 pane 内使用 
 5. 如果选择 `direct-implementation-dispatch` 或 tickets 已发布，对 ready implementation tickets 先创建
    独立 worktree 和 branch，再创建 pane workers。
    一个 tracker issue 一个 worktree，一个 tracker issue 一个 pane。
-   pane worker 内 hands-on 实现按 `references/codex-first-channel.md` 判通道，默认经
-   codex 插件执行。
+   每个 issue 按 `references/codex-first-channel.md` 判通道，默认派独立 codex pane
+   执行，review 与 commit 留在 Claude 侧。
 6. Lead 综合 worker 回报，集成已验证 commits，关闭已集成 worker 的 worktree 和本地
    branch，运行 focused 和 whole-change checks，打开或更新 summary PR/MR，然后等待 CI/CD
    和 review-agent approval。

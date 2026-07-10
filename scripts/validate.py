@@ -97,14 +97,33 @@ def check_no_runtime_leaks() -> None:
         / "codex-first-channel.md"
     ).read_text()
     for required in (
-        "codex@openai-codex",
-        "codex:codex-rescue",
-        "--fresh",
-        "--resume",
-        "raw Codex CLI",
+        "herdr agent start",
+        "codex -s workspace-write -a never",
+        "codex-pane",
+        "claude-native",
+        "herdr agent wait",
+        "永不跳过",
     ):
         if required not in claude_channel:
-            fail(f"Claude codex channel missing plugin guard: {required}")
+            fail(f"Claude codex channel missing herdr guard: {required}")
+
+    plugin_banned = re.compile(
+        r"codex:codex-rescue|codex@openai-codex|codex-plugin|/codex:|"
+        r"codex-companion|CLAUDE_PLUGIN_ROOT|--fresh|--resume"
+    )
+    plugin_hits = []
+    for path in [
+        *(ROOT / "claude" / "skills" / "wayfinder-implement-orchestrator").rglob("*.md"),
+        *(ROOT / "claude" / "agents").glob("wayfinder-*.md"),
+    ]:
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            if plugin_banned.search(line):
+                plugin_hits.append(f"{path.relative_to(ROOT)}:{lineno}:{line}")
+    if plugin_hits:
+        fail(
+            "retired codex plugin channel leaked into Claude skill:\n"
+            + "\n".join(plugin_hits)
+        )
 
     claude_placement = (
         ROOT

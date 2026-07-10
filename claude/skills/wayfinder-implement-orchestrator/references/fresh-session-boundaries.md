@@ -32,13 +32,14 @@
 
 ## 执行通道
 
-Boundaries 决定 work item 跑在哪个 pane；`codex-first-channel.md` 决定该 pane 里
-hands-on 工作由谁执行。派发前给每个可执行 work item 标注 `codex-plugin` 或
+Boundaries 决定 work item 拆成哪些 panes；`codex-first-channel.md` 决定每个 work item
+的 pane 里跑哪个 agent。派发前给每个可执行 work item 标注 `codex-pane` 或
 `claude-native`。
 
-- Implementation worker pane：spec 已冻结的写码工作默认 `codex-plugin`；微小改动、
-  需要会话内工具或插件不可用时 `claude-native`。
-- Discovery `Research` 的大批量代码阅读：可经 `codex-plugin` 只读工单委托；决策、
+- Implementation work item：spec 已冻结的写码工作默认 `codex-pane`——独立 codex pane，
+  工单用 `CODEX_PANE_DISPATCH_PACKET.md`；微小改动、需要会话内工具或 codex pane
+  不可用时 `claude-native`（`/implement` claude pane）。
+- Discovery `Research` 的大批量代码阅读：可派只读工单的 codex pane；决策、
   ticket resolution 和 map 写操作永远留在 Claude。
 - Grilling、spec、ticket split、review、integration、remote 操作：永远 `claude-native`。
 
