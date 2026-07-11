@@ -135,10 +135,12 @@ def check_no_runtime_leaks() -> None:
     ).read_text()
     for required in (
         "--workspace",
+        "--tab",
         "--no-focus",
         "herdr workspace list",
+        "herdr tab list --workspace",
         "herdr pane list --workspace",
-        "同名加尾号",
+        "herdr tab rename",
         "herdr pane get",
     ):
         if required not in claude_placement:

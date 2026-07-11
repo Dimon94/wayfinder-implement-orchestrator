@@ -1,78 +1,114 @@
-# Herdr Pane 落点与 Space 容量
+# Herdr 落点与布局：Space / Tab / Pane
 
 只有在需要创建、补建或替换 Herdr worker panes 时才读取本文件。
 
 ## 术语与坐标
 
 - Herdr UI 侧边栏的 "space" 就是 CLI 的 `workspace`；本文统一说 space。
+- 每个 space 顶部可开多个 tab；pane 属于某个 tab。
 - lead 自身坐标来自环境变量：`HERDR_WORKSPACE_ID`、`HERDR_TAB_ID`、`HERDR_PANE_ID`。
+
+## 三层模型
+
+| 层 | 对应什么 | 命名 |
+|---|---|---|
+| space | 一次开发任务（仓库 × 分支/worktree） | 地图主要内容 + 地图 issue 编号，如 `派发通道确认 #86` |
+| tab | 一类会话的并发容器 | `LEAD` 或 `类型字母-编号·编号·…` |
+| pane | 一个 worker 会话（一张票/一件事） | `#编号 极短摘要` |
+
+### 五类会话 tab
+
+| 字母 | 类型 | 覆盖 |
+|---|---|---|
+| G | 拷问/规划 | grilling、spec 拷问、规划类 |
+| X | 执行 | 实现票（claude 或 codex pane） |
+| P | 原型 | prototype |
+| R | 评审 | 集成评审、PR review |
+| D | 诊断/调研 | debugging、research、证据收集 |
+
+- 每个 space 的第一个 tab 固定命名 `LEAD`，由主编排者独占；lead 进场后先
+  `herdr tab rename $HERDR_TAB_ID LEAD`。
+- tab label 格式：`X-142·143·147`（类型字母 + `-` + 存活 issue 编号，`·` 分隔）。
+  超长被 UI 截断无妨；不加序号后缀，编号列表本身唯一。
+- 每个类型 tab 最多 **4 个并发 issue pane**。第 5 个同类 issue 到来时新建同字母
+  tab，不往满员 tab 里挤。
+- 不做低水位合并：tab 各自然消亡，不用 `pane move` 把残留 pane 并回旧 tab。
+- 阶段迁移：同一 issue 编号随阶段在类型 tab 间迁移（如 X 完成后进 R）；同一时刻
+  同一编号只允许存在于一个类型 tab（前一阶段 pane 关闭后才开下一阶段 pane）。
 
 ## 硬规则：落点必须显式
 
-裸 `herdr pane split` 和裸 `herdr agent start`（不带 `--workspace`/`--pane`/`--current`）
-的落点是**用户当前聚焦的 pane/space**，不是 lead 所在的 space，也不是 map 对应的
-space。用户随时在切换视图，裸命令等于把 worker 派进随机 space。因此：
+裸 `herdr pane split` 和裸 `herdr agent start`（不带 `--workspace`/`--tab`/`--pane`/
+`--current`）的落点是**用户当前聚焦的 pane/space**，不是 lead 所在的 space，也不是
+map 对应的 space。用户随时在切换视图，裸命令等于把 worker 派进随机位置。因此：
 
-- 每条创建命令必须显式定位（`--workspace <id>`、`--pane <id>` 或 `--current`）。
+- 每条创建命令必须显式定位（`--workspace <id>` + `--tab <id>`，或 `--pane <id>`/`--current`）。
 - 每条创建命令必须带 `--no-focus`，批量派发不许抢用户焦点。
 
 ## 解析目标 space
 
 1. 确定 map key：优先 tracker 号形态，例如 `#608`。
-2. 运行 `herdr workspace list`，在 labels 里找包含 map key 的 space，含尾号变体
-   （`剧本格式#608`、`剧本格式#608-2`）。命中的集合就是候选池。
-3. 无命中时：若 lead 自己 `HERDR_WORKSPACE_ID` 的 label 与当前 map 明确一致，直接用；
-   否则创建 `herdr workspace create --label "<map-label>" --cwd <repo-root> --no-focus`
+2. 运行 `herdr workspace list`，在 labels 里找包含 map key 的 space。命中即用。
+3. 无命中时：若 lead 自己 `HERDR_WORKSPACE_ID` 的 label 与当前 map 明确一致（且
+   工作区/分支正确），直接用；否则创建
+   `herdr workspace create --label "<map-label>" --cwd <repo-root> --no-focus`
    并记录返回的 `workspace_id`。
 4. lead 正运行在哪个 space、用户正看着哪个 space，都不是派发依据；map key 匹配才是。
+5. 若某 issue 需要独立 worktree/分支，才另开 space（label 同样带 map key）。
 
-## 容量与同名加尾号溢出
+## 解析目标 tab
 
-- 每个 space 的 pane 上限默认 4（按 space 内现有 pane 总数计，含 lead pane；用户
-  显式要求时可调整）。
-- 每次创建前用 `herdr pane list --workspace <id>` 计数，不凭记忆。
-- 候选池按尾号从小到大找第一个未满的 space；全满则创建下一个尾号：
-  `herdr workspace create --label "<base-label>-<n>" --cwd <repo-root> --no-focus`，
-  `<base-label>` 为不带尾号的原 label，`<n>` 从 2 递增。溢出 space label 必须保留
-  map key，让 agent list 中同一 map 的 workers 仍然归组。
-- 同一批 workers 允许跨多个尾号 space；worker 归属以记录坐标为准。
-- 批次收尾、space 内 panes 全部关闭后，用 `herdr workspace close <id>` 关闭空的
-  溢出 space。
+1. 按 work item 类型确定字母（G/X/P/R/D）。
+2. `herdr tab list --workspace <workspace_id>`，找 label 以该字母 + `-` 开头且编号数
+   < 4 的 tab；命中即为目标 tab。
+3. 无命中时创建：`herdr tab create --workspace <id> --label "<字母>-<编号>" --no-focus`。
+   新 tab 自带一个默认空 pane，必须复用为第一个 worker（同下文"复用默认 pane"）。
+4. 编号计数以 tab label 为准；label 与实际 pane 不符时先对账修正（见"生命周期配对"）。
 
-## 复用默认 pane（新建 workspace 时必做）
+## 生命周期配对（每次派发/收尾的强制动作）
 
-`herdr workspace create` 会产生一个默认空 shell pane。**必须把它复用为第一个
-worker**，不要闲置——否则 space 里出现一栏空 shell，白占 slot 且视觉混乱。
+tab label 必须永远只反映**存活中**的 issue。与 create+send-text 原子对同级强制：
 
-新建 workspace 后的第一个 worker 流程：
+- **派发**：创建 pane → `send-text` 投递 → `pane rename <id> '#编号 极短摘要'` →
+  `herdr tab rename <tab_id> "<字母>-<存活编号列表>"`（追加新编号）。
+- **收尾**：`pane close` → `tab rename`（剔除该编号）→ tab 内最后一个 pane 关闭时
+  直接 `herdr tab close <tab_id>`，不留空 tab。
+- **巡检对账**：lead 每轮监控用 `herdr pane list --workspace <id>` + `pane get` 核对
+  各 tab 实际 pane 与 label 编号列表，发现漂移立即 `tab rename` 修正。
+- space 内 panes 全部关闭、批次收尾后，`herdr workspace close <id>` 关闭空 space
+  （lead 自己所在 space 除外）。
+
+## 复用默认 pane（新建 workspace / tab 时必做）
+
+`herdr workspace create` 和 `herdr tab create` 都会产生一个默认空 shell pane。
+**必须把它复用为第一个 worker**，不要闲置——否则出现空 shell 白占 slot 且视觉混乱。
 
 ```bash
-# 1. 取得默认 pane id
+# 1. 取得默认 pane id（workspace 级同理；tab 级用 pane get 核对 tab_id）
 default_pane=$(herdr pane list --workspace <workspace_id> | python3 -c "
 import json,sys; panes=json.load(sys.stdin)
-print(panes[0]['id'])
+print(panes[-1]['id'])
 ")
 
 # 2. 把默认 pane 变成第一个 worker
-herdr pane rename "$default_pane" <first-worker-label>
+herdr pane rename "$default_pane" '#<编号> <极短摘要>'
 herdr pane run "$default_pane" '<worker 启动命令>'
 herdr pane send-text "$default_pane" '<filled-dispatch-packet>'
 
-# 3. 验证落点（见下节）
+# 3. tab rename + 验证落点（见下节）
 ```
 
-同一 space 里的后续 workers 用标准创建命令。
+## 标准创建命令（原子对：创建 + 投递 + 改名）
 
-## 标准创建命令（原子对：创建 + 投递）
-
-每个 worker 必须走完下面三步再开始下一个 worker，不要批量建完再统一发 prompt。
+每个 worker 必须走完下面四步再开始下一个 worker，不要批量建完再统一发 prompt。
 `<worker 启动命令>` 按执行通道取值：claude pane 用 `claude --dangerously-skip-permissions`，
 codex pane 用 `codex -s workspace-write -a never`（见 `codex-first-channel.md`）：
 
 ```bash
-# 1. 创建 pane 并启动 worker agent
-herdr agent start <pane-label> \
+# 1. 在目标 space + tab 创建 pane 并启动 worker agent
+herdr agent start '#<编号> <极短摘要>' \
   --workspace <workspace_id> \
+  --tab <tab_id> \
   --cwd <worktree-or-repo-path> \
   --no-focus \
   -- <worker 启动命令>
@@ -80,21 +116,25 @@ herdr agent start <pane-label> \
 # 2. 拿到 pane_id 后立即投递 dispatch packet
 herdr pane send-text <pane_id> '<filled-dispatch-packet>'
 
-# 3. 验证落点（见下节）
+# 3. 同步 tab label（追加编号）
+herdr tab rename <tab_id> '<字母>-<存活编号列表>'
+
+# 4. 验证落点（见下节）
 ```
 
 需要在已有 pane 旁精确布局时改用：
 ```bash
 herdr pane split --pane <pane_id> --direction right|down --ratio 0.5 --cwd <path> --no-focus
-herdr pane rename <new-pane> <pane-label>
+herdr pane rename <new-pane> '#<编号> <极短摘要>'
 herdr pane run <new-pane> '<worker 启动命令>'
 herdr pane send-text <new-pane> '<filled-dispatch-packet>'
+herdr tab rename <tab_id> '<字母>-<存活编号列表>'
 ```
 
 ## 创建后验证（每个 pane 必做）
 
-1. `herdr pane get <pane_id>`，确认 `workspace_id` 等于目标 space。
-2. 落点不符时 `herdr pane close <pane_id>`，重新解析目标 space 后用显式参数重建；
+1. `herdr pane get <pane_id>`，确认 `workspace_id` 和 `tab_id` 都等于目标。
+2. 落点不符时 `herdr pane close <pane_id>`，重新解析目标后用显式参数重建；
    连续两次落点错误则停下问用户。
-3. 把 space label、`workspace_id`、pane label、`pane_id` 写进 worker 坐标记录，并要求
-   worker readback 原样回报。
+3. 把 space label、`workspace_id`、tab label、`tab_id`、pane label、`pane_id` 写进
+   worker 坐标记录，并要求 worker readback 原样回报。
