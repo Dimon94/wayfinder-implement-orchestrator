@@ -15,6 +15,8 @@ Ticket label：wayfinder:prototype | wayfinder:grilling | wayfinder:task
 Ticket mode：HITL
 基线分支：
 基线提交：
+Source owner projectId：
+Source worktree：
 HITL 目标：
 需要解决的决策/反馈分支：
 -

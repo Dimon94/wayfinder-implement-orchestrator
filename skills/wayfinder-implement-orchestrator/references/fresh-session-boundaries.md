@@ -50,19 +50,32 @@ work item 创建 child thread。
 Spec、ticket-splitting、review 和 evidence-gathering children 使用
 `GATE_CHILD_DISPATCH_PACKET.md`。
 
-## 未注册 Worktree Targeting
+## Project Ownership 与未注册 Worktree Targeting
 
-如果 source artifacts 位于 `list_projects` 无法 target 的 worktree，就在最近的已注册
-project 创建 child。这件事本身不是 user stop。map/ticket issue 仍通过 tracker 坐标
-读写。
+派发前用 `list_projects` 找到源码仓库所属的已保存项目，并把返回值记录为
+`Source owner projectId`。如果 source artifacts 位于无法直接 target 的 Git worktree，
+使用同一仓库的已保存项目；路径接近但属于另一仓库的 project 不是 owner。
+
+按以下顺序解析 owner：source path 与 project path 精确匹配；source path 位于某个
+project path 内时取最长匹配；Git worktree 仍未命中时，对 source 和候选 project 运行
+`git rev-parse --path-format=absolute --git-common-dir`，只有 common dir 相同才算同一仓库。
+
+`projectId` 不变量：首次 `create_thread`、worktree-to-local 降级和 replacement 都使用
+同一个 `Source owner projectId`。已确认 worktree setup 失败时可以把 environment 从
+`worktree` 改成 `local`，项目归属保持不变。没有同一仓库的已保存项目时停止，并请用户
+先把源码仓库添加为 Codex project。
+
+创建后第一次 startup probe 同时核对 child `cwd`：它必须等于 owner project path，或位于
+该项目创建的 Codex worktree。归属不匹配就是错误派发；停止使用该 child，并按相同
+`Source owner projectId` 创建 replacement。
 
 记录两组坐标：
 
-- Execution target：用于创建线程的已注册 project/worktree。
+- Execution target：`Source owner projectId` 对应的已注册 project/worktree。
 - External coordinates：tracker map/ticket issue URLs、source worktree 里的 proof 和
   artifact paths。
 
 除非 packet 明确列出 write target，否则 external coordinates 都是只读。对 discovery
 tickets，唯一允许的 external writes 是 tracker map/ticket issues 和列出的 artifact
-paths。用一行向用户报告这个 fallback；当 thread tools 可用时，不要以手动
-copy-paste instructions 结束。
+paths。用一行向用户报告同仓库 worktree-to-local 降级；当 thread tools 可用时，不要以
+手动 copy-paste instructions 结束。

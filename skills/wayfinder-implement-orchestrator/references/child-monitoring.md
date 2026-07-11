@@ -12,13 +12,15 @@
 - 声称已进入监控前，先发现 `automation_update`。
 - 创建 heartbeat 前，对每个 child 做 startup probe：调用一次 `read_thread`，
   确认子线程里有可见派发 prompt、正在执行的工作，或非空 final report。
-- 如果 `create_thread` 返回的是 `pendingWorktreeId` 而不是 `threadId`，
-  记录该 pending ID，并创建 heartbeat 继续发现。只有真实 thread ID 出现且
-  通过 startup probe 后，才算已启动子线程。
+- 如果 `create_thread` 返回的是 `clientThreadId` 而不是 `threadId`，记录该 pending
+  coordinate，并创建 heartbeat 继续发现。recent threads 暂时找不到它只代表 setup
+  仍 pending；只有真实 thread ID 出现且通过 startup probe 后，才算已启动子线程。
 - 如果一个 `interrupted`、`idle` 或 `completed` 子线程没有可见 prompt、
   模型消息、tool call 或 final report，把它视为未启动。
-- 对未启动子线程，用同一个 packet 创建一个替代线程，更新 child 坐标，并把旧线程
-  标为 ignored。如果替代线程也无法通过 startup probe，停止并询问用户。
+- 对已解析但未启动的子线程，或已有明确 setup failure 的 pending coordinate，用同一个
+  packet 和相同的 `projectId` 创建替代线程，更新 child 坐标，并把旧坐标标为 ignored。
+  worktree setup 明确失败时可以降级为 `local` environment；如果替代线程也无法通过
+  startup probe，停止并询问用户。
 - 用真实 `automation_update` 调用创建 5 分钟 heartbeat：
   `mode: create`, `kind: heartbeat`, `destination: thread`,
   `status: ACTIVE`, target the parent thread, and use a 5 minute recurrence.
@@ -36,7 +38,7 @@
 
 heartbeat prompt 必须使用中文，并包含：
 
-- child thread IDs 或 pending worktree IDs，以及 work item IDs；
+- child thread IDs 或 pending `clientThreadId` coordinates，以及 work item IDs；
 - ignored child thread IDs 和忽略原因；
 - 已收到 handoff 但仍处于 settling 的 child IDs；
 - 5 分钟 cadence；
@@ -52,7 +54,7 @@ heartbeat prompt 必须使用中文，并包含：
 
 每次 reminder：
 
-1. 对 pending worktree IDs，只搜索一次 recent threads。若没有真实 thread，
+1. 对 pending `clientThreadId` coordinates，只搜索一次 recent threads。若没有真实 thread，
    记录一行 pending 状态并停止。
 2. 每个已解析 child thread 只读一次。
 3. 忽略任何已记录为 replaced、工作前 interrupted 或 not started 的 child。

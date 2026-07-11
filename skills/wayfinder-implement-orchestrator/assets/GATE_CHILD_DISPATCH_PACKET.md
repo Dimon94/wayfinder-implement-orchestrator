@@ -12,6 +12,7 @@ Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback
 路由 skill：/to-spec | /to-tickets | /code-review | none
 基线分支：
 基线提交：
+Source owner projectId：
 进度快照：<当前门禁；已完成/运行/阻塞/待派发 work items；本 child 的作用；下一门禁或 blocker>
 
 真相源坐标：
@@ -22,8 +23,8 @@ Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback
 - Source worktree：
 
 目标说明：
-- 如果 Source worktree 不是可创建 Codex 线程的 project target，就在已创建
-  的项目线程里把这些绝对路径当作只读证据读取。
+- 按 `fresh-session-boundaries.md` 使用 Source owner projectId；未注册 source worktree
+  仍绑定同一仓库的已保存项目，并把这些绝对路径当作只读证据读取。
 
 允许范围：
 - 可以写入/发布：

@@ -45,7 +45,8 @@ writes: []
    TOC 记录，或缺失的 CRT 边、Conflict Cloud 假设、Injection 证据、PRT 障碍、
    NBR 风险被标成 frontier / user stop / `Unknown`。
 4. 加载 `references/fresh-session-boundaries.md`。完成标准：每个可执行 work item
-   都已分类为 fresh child、parent-owned gate 或 user stop。
+   都已分类为 fresh child、parent-owned gate 或 user stop；每个 fresh child 的
+   `Source owner projectId` 已解析并写进 dispatch packet，或缺少同仓库项目而成为 user stop。
 5. 如果要派发 spec、ticket 拆分、review 或 evidence-gathering gate child，加载
    `assets/GATE_CHILD_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆填写一个
    gate packet。
@@ -113,8 +114,6 @@ writes: []
   停止条件或缺少工具阻止派发，否则自动创建 child threads。
 - Discovery child issue 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud
   假设、Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
-- 如果 source worktree 不是可创建线程的 project target，使用
-  `references/fresh-session-boundaries.md` 里的 fallback，并只报告一次。
 - 创建 worktree 或在某个 worktree 内工作时，不要切换主目录/source worktree 的
   分支。需要新分支时，只在目标 worktree 目录内创建/切换该分支。
 - 只有 `create_thread` 不够。进入监控前，读取每个 child 一次，确认它已经从 dispatch

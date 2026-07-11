@@ -145,6 +145,45 @@ def check_no_runtime_leaks() -> None:
             fail(f"Claude pane placement missing guard: {required}")
 
 
+def check_codex_project_targeting() -> None:
+    skill_root = ROOT / "skills" / "wayfinder-implement-orchestrator"
+    required_by_path = {
+        skill_root / "SKILL.md": ("`Source owner projectId`",),
+        skill_root / "references" / "fresh-session-boundaries.md": (
+            "`projectId` 不变量",
+            "同一仓库",
+            "child `cwd`",
+            "--git-common-dir",
+        ),
+        skill_root / "references" / "child-monitoring.md": (
+            "`clientThreadId`",
+            "相同的 `projectId`",
+        ),
+    }
+    for path, required_items in required_by_path.items():
+        content = path.read_text()
+        for required in required_items:
+            if required not in content:
+                fail(
+                    "Codex project targeting missing guard in "
+                    f"{path.relative_to(ROOT)}: {required}"
+                )
+
+    dispatch_packets = list((skill_root / "assets").glob("*DISPATCH_PACKET.md"))
+    for path in dispatch_packets:
+        if "Source owner projectId：" not in path.read_text():
+            fail(
+                "Codex dispatch packet missing source owner coordinate: "
+                f"{path.relative_to(ROOT)}"
+            )
+
+    monitoring = (
+        skill_root / "references" / "child-monitoring.md"
+    ).read_text()
+    if "pendingWorktreeId" in monitoring:
+        fail("Codex monitoring still uses stale pendingWorktreeId")
+
+
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text())
     if manifest.get("format") != "codex-claude-skill-bundle/v1":
@@ -199,6 +238,7 @@ def main() -> None:
     check_references(CODEX_SKILL)
     check_references(CLAUDE_SKILL)
     check_no_runtime_leaks()
+    check_codex_project_targeting()
 
     expected_agents = {
         "wayfinder-frontier-worker.md",

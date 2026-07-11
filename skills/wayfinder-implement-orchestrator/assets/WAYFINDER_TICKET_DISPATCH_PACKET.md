@@ -12,6 +12,7 @@ Ticket label：wayfinder:research | wayfinder:task
 Ticket mode：AFK
 基线分支：
 基线提交：
+Source owner projectId：
 执行目标：
 Source worktree：
 进度快照：<当前门禁；discovery 已完成/运行/阻塞/待派发数量；本 batch；下一门禁或 blocker>
