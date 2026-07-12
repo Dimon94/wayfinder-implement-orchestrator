@@ -1,6 +1,6 @@
 ---
 name: wayfinder-implement-orchestrator
-version: 1.1.0
+version: 1.1.1
 description: Coordinate Wayfinder maps through route selection, spec/ticket gates, implementation dispatch, integration, and one summary PR/MR.
 disable-model-invocation: true
 skill_class: user-entry
@@ -36,6 +36,9 @@ writes: []
    如果用户给的是松散想法而不是现有 map issue，先按 `/wayfinder` chart-map 流程命名
    Destination 并 breadth-first 探 fog；如果没有 in-scope fog，说明不需要 map，停止并
    问用户要直接进入哪种单 session 路径，不要创建空 map。
+   创建或更新 tracker 内容前，同时识别 repo 的 Issue 模板与必填字段；完成
+   标准：即将由本链路写入的 Issue 标题、正文、字段文本和评论均已按下方
+   `Tracker 中文输出门禁` 准备为中文。
 2. 加载 `references/gate-state-machine.md`。完成标准：已识别当前门禁、真相源和
    下一门禁；如果 in-scope Wayfinder child issues 都已 closed，已用 post-discovery route classifier
    选择 `wayfinder-complete`、`needs-spec`、`needs-implementation-tickets` 或
@@ -69,8 +72,22 @@ writes: []
 
 ## 规则
 
-- 所有面向用户、子线程、heartbeat、handoff 和 PR/MR comment 的自然语言都用中文。
+- 所有面向用户、子线程、heartbeat、handoff、Issue 和 PR/MR comment 的自然语言都用中文。
   skill 名、tool 名、状态枚举、路径、分支名、commit hash 和代码字面量保持原样。
+- 执行 `Tracker 中文输出门禁`：
+  - 本链路及其 child threads 新建或改写的所有 Issue 标题、Issue 正文、自由文本
+    字段、进度评论、resolution/closeout comment 和回复必须使用中文；这包括
+    map issue、discovery child issue、spec issue 和 implementation ticket。
+  - 英文模板栏目名可保留以符合 tracker schema，但栏目下的说明、结论、证据摘要
+    和行动项必须用中文。skill/tool 名、标签、状态枚举、API 字段、代码、命令、
+    路径、URL、分支名、commit hash 和必须精确匹配的引用保持原样。
+  - 英文来源以中文概括并附原始链接；除了证据必需的短引用，不把英文段落直接
+    粘贴到 Issue 或评论。
+  - 每次调用 tracker 的 create/update/comment/close 操作前检查待发布文本；如果存在
+    非例外的英文自然语言，先翻译或改写为中文，不得先发布再补改。
+  - dispatch packet 必须显式携带这个门禁；child 返回英文 Issue 草稿或评论草稿时，
+    父线程必须在远程写入前转为中文。第三方 bot 或 reviewer 已发布的文本不属于
+    本链路的可控输出，但对它的回复仍必须中文。
 - 每个门禁只保留一个真相源：discovery 用 `wayfinder:map` issue 和它的 child
   issues，product scope 只在 route 选择 `needs-spec` 时用 spec issue/doc，
   implementation tickets 用 tracker issues，execution 用 child thread readback 加 Git
