@@ -46,9 +46,29 @@ heartbeat prompt 必须使用中文，并包含：
 - 派发时的 `进度快照`，以及唤醒时必须从真相源重算的规则；
 - 每次唤醒只读取每个 child 一次的规则；
 - 不做 full-log summaries 的规则；
+- 每个 child 的上下文余量与收线阈值（见「上下文收线与续接」）；
 - 只有已验证的 terminal child reports 才能推进门禁的规则；
 - child-to-parent handoff 只是唤醒提示，child final report 才是证据源的规则；
 - final PR/MR remote-gate 完成后删除 heartbeat 的规则。
+
+## 上下文收线与续接
+
+子线程的聪明区域是已用上下文 ≤ 120K（约窗口 60%）。越过后子线程判断力下降，触发
+自动压缩更会丢工作状态，所以宁可收线重派，也不让子线程跑满上下文。收线是父线程
+唯一主动打断运行中子线程的情形。
+
+- 每次唤醒读取子线程时顺带估计其上下文消耗：能读到用量指示就用指示，读不到就按
+  transcript 规模与已运行轮次粗估。
+- 子线程已离开聪明区域且任务尚未接近完成时立即收线：向该子线程发送收线指令，要求
+  停止开启新工作，把 handoff 回填到该 work item 的 tracker issue comment——已完成
+  并验证的事实、剩余步骤、worktree/branch/commit 坐标、建议的下一步——然后输出以
+  `HANDOFF` 开头的 final report 并结束。
+- 收到 `HANDOFF` report 后核实 issue 里的回填 comment 存在且四类字段齐全；缺失时向
+  同一子线程追问一次，仍缺失则父线程从真相源（commits、child transcript 尾部）补写。
+- 续接派发：用同一 packet 和相同的 `projectId` 创建新子线程，prompt 附 handoff
+  comment 的 title link 并声明从该 handoff 续接；implementation 子线程复用同一
+  worktree 和 branch。旧线程坐标标为 ignored。
+- 收线只针对上下文余量；进度慢但余量充足的子线程按原 heartbeat 节奏检查。
 
 ## 唤醒检查
 
@@ -63,8 +83,9 @@ heartbeat prompt 必须使用中文，并包含：
    不要判定 blocked。等下一次 heartbeat；如果用户正在等待，可以做一次短 grace
    read。
 5. 如果两次 heartbeat 后仍是 settling，询问用户或检查 child transcript 里的证据；
-   不要打断 child。
-6. 如果正在运行且没有 completed handoff，记录一行状态并停止。
+   不要因进度慢打断 child。
+6. 如果正在运行且没有 completed handoff，估一眼上下文消耗：仍在聪明区域就记录一行
+   状态并停止；已离开聪明区域则按「上下文收线与续接」收线。
 7. 如果 blocked，只读足够证据来分类 `valid`、`invalid` 或 `Unknown`，然后询问用户
    或纠正准确的 child thread。
 8. 如果 completed，读取 child final report，确认 parent handoff 字段，然后把该

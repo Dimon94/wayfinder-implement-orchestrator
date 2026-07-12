@@ -61,8 +61,8 @@ writes: []
    `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
    issue 填写一个 packet。
 9. 如果 child threads 正在运行，加载 `references/child-monitoring.md`。完成标准：
-   每个 child 都通过 startup probe，然后存在 5 分钟 automation reminder；如果缺少
-   automation 支持，就报告手动检查坐标。
+   每个 child 都通过 startup probe，然后存在 5 分钟 automation reminder，且每次唤醒
+   含上下文余量收线判断；如果缺少 automation 支持，就报告手动检查坐标。
 10. 如果要收尾 summary PR/MR，加载 `references/remote-closeout-checklist.md`。完成标准：
    所有 child results、commits、checks、issue links、CI/CD 和 review-agent verdicts
    都已映射。

@@ -33,6 +33,7 @@ lead 变差。派发后用 Herdr pane 状态做 5 分钟节奏检查。
 - 派发时的 `进度快照`，以及检查时必须从真相源重算的规则；
 - 每次只打开每个 pane 一次的规则；
 - 不做 full-log summaries 的规则；
+- 每个 worker 的上下文余量与收线阈值（见「上下文收线与续接」）；
 - 只有已验证的 terminal final reports 才能推进 gate 的规则；
 - worker handoff 只是提示，worker final report 才是证据源的规则。
 
@@ -61,6 +62,33 @@ claude worker 会按派发包的求助规则向 lead pane 发送单行
 - 收到完成提醒后按"唤醒检查"第 7 条读取 final report 并推进 gate；final report
   尚未完整时按 settling 处理，不催促、不替换 pane。
 
+## 上下文收线与续接
+
+worker 的聪明区域是已用上下文 ≤ 120K（约窗口 60%）。越过后 worker 判断力下降，触发
+自动压缩更会丢工作状态，所以宁可收线重派，也不让 worker 跑满上下文。收线是 lead
+唯一主动打断运行中 worker 的情形。
+
+- 上下文用量从会话日志精确测量，不打扰 worker、不必打开 pane：
+  - claude pane：日志目录是 `~/.claude/projects/<cwd，非法字符替换为 ->/`（如
+    `/a/b` → `-a-b`），取派发后新建且仍在更新的 `*.jsonl`，读最后一条带
+    `message.usage` 的记录，已用上下文 ≈
+    `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`。
+  - codex pane：日志在 `~/.codex/sessions/<YYYY/MM/DD>/rollout-*.jsonl`，按文件内
+    session 元数据的 cwd 匹配该 pane 的 worktree，读最后一条 `token_count` 事件，
+    已用上下文 ≈ `last_token_usage.input_tokens`，窗口取 `model_context_window`。
+  - 日志无法唯一定位到该 worker 时（如多个会话共用同一 cwd），退回打开 pane 读
+    界面的余量指示。
+- worker 已离开聪明区域且任务尚未接近完成时立即收线：`herdr pane send-text` 发送
+  收线指令，要求 worker 停止开启新工作，把 handoff 回填到该 work item 的 tracker
+  issue comment——已完成并验证的事实、剩余步骤、worktree/branch/commit 坐标、建议
+  的下一步——然后输出以 `HANDOFF` 开头的 final report 并结束。
+- 收到 `HANDOFF` report 后核实 issue 里的回填 comment 存在且四类字段齐全；缺失时向
+  同一 pane 追问一次，仍缺失则 lead 从真相源（commits、pane transcript 尾部）补写。
+- 续接派发：用原 dispatch packet 创建新 pane，prompt 附 handoff comment 的
+  title link 并声明从该 handoff 续接；implementation worker 复用同一 worktree 和
+  branch。旧 pane 标 ignored 并同步 tab rename。
+- 收线只针对上下文余量；进度慢但余量充足的 worker 按原节奏检查。
+
 ## 唤醒检查
 
 每次 5 分钟检查：
@@ -70,9 +98,10 @@ claude worker 会按派发包的求助规则向 lead pane 发送单行
 3. 如果 pane 显示 done 但 final report 尚未完整，把该 worker 标为 `settling`：
    不发纠偏消息，不替换 pane，不判定 blocked。等下一次检查；如果用户正在等待，
    可以做一次短 grace read。
-4. 如果两次检查后仍是 settling，检查 pane transcript 里的证据或询问用户；不要打断
-   仍在运行的 worker。
-5. 如果 worker 正在运行且没有 completed final report，记录一行状态并停止。
+4. 如果两次检查后仍是 settling，检查 pane transcript 里的证据或询问用户；不要因
+   进度慢打断仍在运行的 worker。
+5. 如果 worker 正在运行且没有 completed final report，按「上下文收线与续接」的日志
+   测量查一次上下文用量：仍在聪明区域就记录一行状态并停止；已离开聪明区域则收线。
 6. 如果 worker blocked，只读足够证据来分类 `valid`、`invalid` 或 `Unknown`，然后
    由 lead 询问用户或纠正准确的 worker pane。
 7. 如果 worker completed，读取 final report，确认 handoff 字段，然后把该 work item
