@@ -102,7 +102,16 @@ herdr pane send-text "$default_pane" '<filled-dispatch-packet>'
 
 每个 worker 必须走完下面四步再开始下一个 worker，不要批量建完再统一发 prompt。
 `<worker 启动命令>` 按执行通道取值：claude pane 用 `claude --dangerously-skip-permissions`，
-codex pane 用 `codex -s workspace-write -a never`（见 `codex-first-channel.md`）：
+codex pane 用 `codex -s workspace-write -a never`（见 `codex-first-channel.md`）。
+
+claude pane 的模型按 tab 类型追加：
+
+| tab 类型 | 模型参数 | 依据 |
+|---|---|---|
+| G / D / R（拷问规划、诊断调研、评审） | 追加 `--model claude-fable-5` | 判断密集型工作用最强模型 |
+| X / P（执行、原型） | 不追加 `--model` | 跟随用户默认配置 |
+
+codex pane 的模型由 codex 自身配置决定，派发时不指定：
 
 ```bash
 # 1. 在目标 space + tab 创建 pane 并启动 worker agent
@@ -130,6 +139,26 @@ herdr pane run <new-pane> '<worker 启动命令>'
 herdr pane send-text <new-pane> '<filled-dispatch-packet>'
 herdr tab rename <tab_id> '<字母>-<存活编号列表>'
 ```
+
+## 回信地址与 WAKE 求助信号
+
+worker pane 与 lead 共享同一个 Herdr server socket，可以反向发消息。派发 claude pane
+时，每个 filled dispatch packet 末尾必须附加一个"回信地址"块，lead pane id 取自 lead
+自己的 `$HERDR_PANE_ID`：
+
+```text
+回信地址（lead pane）：<lead 的 HERDR_PANE_ID>
+求助规则：进入 blocked 或 completed 时，先在本 pane 输出完整 final report 或
+blocked 问题，然后运行一条单行 WAKE 通知：
+  herdr agent send <lead-pane-id> 'WAKE: #<编号> blocked|done <一句原因>'
+WAKE 只是唤醒信号；lead 只认 pane 内的 final report 和真相源，不认 WAKE 正文。
+```
+
+- WAKE 只适用于 claude pane。codex pane 的 sandbox 可能拦截 socket 访问，其
+  `idle`/`working`/`blocked` 状态由 Herdr codex integration 上报，完成提醒由 lead
+  侧后台 `herdr wait agent-status` 兜底（见 `child-monitoring.md` 的"完成主动提醒"），
+  packet 不附回信地址块。
+- lead 收到 WAKE 后的处理规则见 `child-monitoring.md` 的"WAKE 信号处理"。
 
 ## 创建后验证（每个 pane 必做）
 

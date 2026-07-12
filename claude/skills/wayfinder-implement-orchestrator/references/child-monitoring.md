@@ -36,6 +36,31 @@ lead 变差。派发后用 Herdr pane 状态做 5 分钟节奏检查。
 - 只有已验证的 terminal final reports 才能推进 gate 的规则；
 - worker handoff 只是提示，worker final report 才是证据源的规则。
 
+## WAKE 信号处理
+
+claude worker 会按派发包的求助规则向 lead pane 发送单行
+`WAKE: #<编号> blocked|done <一句原因>`（见 `herdr-pane-placement.md` 的
+"回信地址与 WAKE 求助信号"）。
+
+- WAKE 等价于把该 worker 的下一次 5 分钟检查提前到现在，且只检查该 pane；其余
+  worker 仍按原节奏。
+- WAKE 正文不是证据。blocked 原因、进度、final report 一律回到 pane 与真相源核实，
+  处理流程沿用下方"唤醒检查"对应条目（blocked 走第 6 条，completed 走第 7 条）。
+- 对已标 ignored / replaced 的 pane 发来的 WAKE 直接忽略。
+- 没收到 WAKE 不代表没事：5 分钟节奏检查照常进行，WAKE 只是提前量。
+
+## 完成主动提醒
+
+每个 worker 完成后必须主动唤醒 lead，不等下一次节奏检查：
+
+- claude pane：完成时发 `WAKE: #<编号> done <一句原因>`，是派发包的硬性要求（见上节）。
+- codex pane：worker 发不了 WAKE，lead 在派发该 pane 后立即启动一条后台兜底命令
+  （后台运行，不阻塞 lead）：
+  `herdr wait agent-status <pane_id> --status done --timeout 7200000`。
+  命令因 done 退出即视同收到该 pane 的 done WAKE；超时退出则按节奏检查继续。
+- 收到完成提醒后按"唤醒检查"第 7 条读取 final report 并推进 gate；final report
+  尚未完整时按 settling 处理，不催促、不替换 pane。
+
 ## 唤醒检查
 
 每次 5 分钟检查：
