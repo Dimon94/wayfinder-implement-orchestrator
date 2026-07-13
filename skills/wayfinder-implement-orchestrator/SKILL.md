@@ -1,12 +1,13 @@
 ---
 name: wayfinder-implement-orchestrator
-version: 1.1.1
+version: 1.2.0
 description: Coordinate Wayfinder maps through route selection, spec/ticket gates, implementation dispatch, integration, and one summary PR/MR.
 disable-model-invocation: true
 skill_class: user-entry
 route_family: main
 reads:
   - references/gate-state-machine.md
+  - references/ticket-split-coverage.md
   - references/fresh-session-boundaries.md
   - references/wayfinder-frontier-loop.md
   - references/child-monitoring.md
@@ -50,23 +51,26 @@ writes: []
 4. 加载 `references/fresh-session-boundaries.md`。完成标准：每个可执行 work item
    都已分类为 fresh child、parent-owned gate 或 user stop；每个 fresh child 的
    `Source owner projectId` 已解析并写进 dispatch packet，或缺少同仓库项目而成为 user stop。
-5. 如果要派发 spec、ticket 拆分、review 或 evidence-gathering gate child，加载
+5. 如果 route 进入 tickets 门禁，或执行期出现修补票、被推翻合同或票面外发现，加载
+   `references/ticket-split-coverage.md`。完成标准：变更面普查六面各有票或 map
+   边界行；执行期新票已挂图；被推翻合同已有 supersede note 与重冻结前置。
+6. 如果要派发 spec、ticket 拆分、review 或 evidence-gathering gate child，加载
    `assets/GATE_CHILD_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆填写一个
    gate packet。
-6. 如果要派发 discovery child issues，加载
+7. 如果要派发 discovery child issues，加载
    `references/wayfinder-frontier-loop.md` 和
    `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
    child issue 填写一个 packet。
-7. 如果下一个 discovery child issue 是 `wayfinder:grilling` 或需要实时判断，加载
+8. 如果下一个 discovery child issue 是 `wayfinder:grilling` 或需要实时判断，加载
    `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`。完成标准：一个 copy-paste
    prompt 能让用户在 fresh thread 跑完整拷问会话，并把结果带回父线程。
-8. 如果要派发 implementation tickets，加载
+9. 如果要派发 implementation tickets，加载
    `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆为每个
    issue 填写一个 packet。
-9. 如果 child threads 正在运行，加载 `references/child-monitoring.md`。完成标准：
+10. 如果 child threads 正在运行，加载 `references/child-monitoring.md`。完成标准：
    每个 child 都通过 startup probe，然后存在 5 分钟 automation reminder，且每次唤醒
    含上下文余量收线判断；如果缺少 automation 支持，就报告手动检查坐标。
-10. 如果要收尾 summary PR/MR，加载 `references/remote-closeout-checklist.md`。完成标准：
+11. 如果要收尾 summary PR/MR，加载 `references/remote-closeout-checklist.md`。完成标准：
    所有 child results、commits、checks、issue links、CI/CD 和 review-agent verdicts
    都已映射。
 
