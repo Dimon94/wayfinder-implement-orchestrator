@@ -7,8 +7,9 @@ Lane ID：L<编号>
 Coordinator pane：<id>
 父 Scope source：<spec/map URL>
 初始 Issue：<id/title/url>
+估时档位：<档位(总分) 上限分钟；来自 ticket body>
 可领取 direct dependents：
-- <id/title/url — prerequisites 与冲突条件>
+- <id/title/url — 档位与 prerequisites/冲突条件>
 Worktree：
 分支：
 Base commit：
@@ -36,6 +37,8 @@ Base commit：
 - 只有 direct dependent prerequisites 已满足且不与 active lanes 冲突时才继续领取。
 - 不创建 sibling panes，不集成、不 push、不开 PR/MR；remote publication 归 coordinator。
 - blocker 或 hidden prerequisite 只停止本 lane，不标记其他 lanes blocked。
+- 每个 checkpoint 自检已耗墙钟：超过 2× 档位上限且离完成还远时，按隐藏前置升级
+  出口结束为 blocked，在 final report 建议拆分方案（超估熔断）。
 - 自动压缩后从 packet、tracker、Git 和 checkpoints 重建。
 
 Review gate：
@@ -50,6 +53,7 @@ Pane：
 Worktree：
 分支：
 完成 Issues：
+每票实际分钟：<#issue 分钟；#issue 分钟>
 未领取 dependents：
 Commits：
 验证：

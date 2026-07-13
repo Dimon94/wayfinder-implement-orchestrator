@@ -12,8 +12,9 @@ Repo/worktree 绝对路径：
 分支（已检出，不要切换）：
 基线提交：
 初始 ticket：<id/title/url>
+估时档位：<档位(总分) 上限分钟；来自 ticket body>
 可领取 direct dependents：
-- <id/title/url — prerequisites 与冲突条件>
+- <id/title/url — 档位与 prerequisites/冲突条件>
 Active lane conflicts：
 - <lane/resource> | none
 
@@ -33,6 +34,8 @@ Active lane conflicts：
   否则正常结束 lane，把 dependent 留给 coordinator 重算 frontier。
 - 普通实现错误和测试失败在票面内自行修复。
 - 合同被推翻、需要用户判断、新 local authority 或安全边界失效时只阻塞本 lane。
+- 每个 checkpoint 自检已耗墙钟：超过 2× 档位上限且离完成还远时，停止本 lane 并在
+  final report 建议拆分方案（超估熔断）。
 - 自动压缩后从本 packet、Git 和 checkpoints 重建，不因上下文增长停止。
 
 每票验收与验证：
@@ -54,6 +57,7 @@ Lane ID：
 状态：completed | blocked
 执行通道：codex-pane
 完成 tickets：
+每票实际分钟：<#ticket 分钟；#ticket 分钟>
 未领取 dependents：
 Worktree：
 分支：

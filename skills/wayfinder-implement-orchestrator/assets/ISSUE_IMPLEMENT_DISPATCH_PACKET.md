@@ -9,7 +9,8 @@ Lane ID：
 父 Spec/Scope source：<spec id/url | Wayfinder map/source issue id/url>
 Initial issue：
 Initial issue 标题：
-可领取 direct dependents：<ids/urls；仍需在领取时重算 prerequisites/conflicts>
+估时档位：<档位(总分) 上限分钟；来自 ticket body>
+可领取 direct dependents：<ids/urls 与档位；仍需在领取时重算 prerequisites/conflicts>
 基线分支：
 基线提交：
 Source owner projectId：
@@ -69,12 +70,15 @@ Review gate：
 - 隐藏前置升级出口：实现证据暴露票面外活跃消费者、被推翻合同或超出本票安全
   边界的爆炸半径时，停止并在 final report 的「发现的隐藏前置」给出新前置票建议
   （消费者/缺口坐标 + 一句建议票名），保持本票原范围。
+- 每个 checkpoint 自检已耗墙钟：超过 2× 档位上限且离完成还远时，按隐藏前置升级
+  出口停止本 lane，在 final report 建议拆分方案（超估熔断）。
 - lane terminal 时输出完整 final report，并用 `send_message_to_thread` 向 coordinator 发送
   `TERMINAL: <lane-id> completed|blocked <一句原因>`。不发送 routine progress。
 
 Final report：
 Lane ID：
 Completed issues：
+每票实际分钟：<#issue 分钟；#issue 分钟>
 Remaining/blocked issues：
 状态：completed | blocked
 线程：
