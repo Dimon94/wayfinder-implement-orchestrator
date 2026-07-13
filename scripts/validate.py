@@ -84,8 +84,8 @@ def check_no_runtime_leaks() -> None:
         / "references"
         / "child-monitoring.md"
     ).read_text()
-    for required in ("Herdr pane status", "进度快照", "5 分钟检查"):
-        if required not in claude_monitor:
+    for required in ("herdr pane status", "terminal fan-in", "watchdog"):
+        if required not in claude_monitor.lower():
             fail(f"Claude monitoring missing runtime guard: {required}")
 
     claude_channel = (
@@ -101,7 +101,7 @@ def check_no_runtime_leaks() -> None:
         "codex -s workspace-write -a never",
         "codex-pane",
         "claude-native",
-        "herdr agent wait",
+        "herdr wait agent-status",
         "永不跳过",
     ):
         if required not in claude_channel:
@@ -186,6 +186,115 @@ def check_codex_project_targeting() -> None:
         fail("Codex monitoring still uses stale pendingWorktreeId")
 
 
+def check_frontier_lane_contract() -> None:
+    codex_root = ROOT / "skills" / "wayfinder-implement-orchestrator"
+    claude_root = ROOT / "claude" / "skills" / "wayfinder-implement-orchestrator"
+    frontier_refs = (
+        codex_root / "references" / "frontier-lanes.md",
+        claude_root / "references" / "frontier-lanes.md",
+    )
+    for path in frontier_refs:
+        if not path.exists():
+            fail(f"missing frontier/lane contract: {path.relative_to(ROOT)}")
+        content = path.read_text().lower()
+        for required in (
+            "ready frontier",
+            "maximal safe batch",
+            "execution lane",
+            "terminal fan-in",
+            "lane blocked",
+            "local execution authority",
+            "remote publication authority",
+            "remote authority 不阻塞本地 lanes",
+            "lane 内按 dependency order",
+            "不读取 routine progress",
+            "不建立固定 cadence",
+        ):
+            if required not in content:
+                fail(
+                    "frontier/lane contract missing invariant in "
+                    f"{path.relative_to(ROOT)}: {required}"
+                )
+
+    claude_frontier = frontier_refs[1].read_text()
+    for required in ("runtime 是 lane-local routing", "不需要逐 lane 询问用户"):
+        if required not in claude_frontier:
+            fail(f"Claude frontier contract missing runtime routing: {required}")
+
+    for path in (CODEX_SKILL, CLAUDE_SKILL):
+        if "references/frontier-lanes.md" not in path.read_text():
+            fail(
+                "skill does not load frontier/lane contract: "
+                f"{path.relative_to(ROOT)}"
+            )
+
+    context = (ROOT / "CONTEXT.md").read_text()
+    for required in ("Execution lane", "Lane ID", "Terminal fan-in"):
+        if required not in context:
+            fail(f"CONTEXT missing lane vocabulary: {required}")
+
+    claude_placement = (
+        claude_root / "references" / "herdr-pane-placement.md"
+    ).read_text()
+    for required in ("L1(#", "X-L1"):
+        if required not in claude_placement:
+            fail(f"Claude pane placement missing lane label: {required}")
+
+    lane_packets = (
+        codex_root / "assets" / "ISSUE_IMPLEMENT_DISPATCH_PACKET.md",
+        claude_root / "assets" / "ISSUE_IMPLEMENT_DISPATCH_PACKET.md",
+        claude_root / "assets" / "CODEX_PANE_DISPATCH_PACKET.md",
+    )
+    for path in lane_packets:
+        content = path.read_text()
+        for required in ("Lane ID", "terminal"):
+            if required.lower() not in content.lower():
+                fail(
+                    "execution dispatch packet missing lane invariant in "
+                    f"{path.relative_to(ROOT)}: {required}"
+                )
+
+    active_docs = [
+        ROOT / "README.md",
+        ROOT / "README.zh-CN.md",
+        ROOT / "CONTEXT.md",
+        *codex_root.rglob("*.md"),
+        *claude_root.rglob("*.md"),
+        *(ROOT / "claude" / "agents").glob("wayfinder-*.md"),
+    ]
+    legacy_patterns = (
+        re.compile(r"只有用户明确(?:要求并行|选择)"),
+        re.compile(r"explicitly requested parallel", re.IGNORECASE),
+        re.compile(r"explicitly selects?", re.IGNORECASE),
+        re.compile(r"(?:整个|entire)\s*(?:冻结\s*)?queue", re.IGNORECASE),
+        re.compile(r"--status\s+idle"),
+        re.compile(r"每次\s*5\s*分钟检查"),
+        re.compile(r"5\s*分钟检查(?:清单|照常|时)"),
+    )
+    legacy_hits = []
+    for path in active_docs:
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            if any(pattern.search(line) for pattern in legacy_patterns):
+                legacy_hits.append(f"{path.relative_to(ROOT)}:{lineno}:{line}")
+    if legacy_hits:
+        fail(
+            "legacy serial/polling execution contract remains:\n"
+            + "\n".join(legacy_hits)
+        )
+
+    for path in (
+        codex_root / "references" / "child-monitoring.md",
+        claude_root / "references" / "child-monitoring.md",
+    ):
+        content = path.read_text().lower()
+        for required in ("terminal fan-in", "watchdog"):
+            if required not in content:
+                fail(
+                    "monitoring contract missing terminal-only behavior in "
+                    f"{path.relative_to(ROOT)}: {required}"
+                )
+
+
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text())
     if manifest.get("format") != "codex-claude-skill-bundle/v1":
@@ -241,6 +350,7 @@ def main() -> None:
     check_references(CLAUDE_SKILL)
     check_no_runtime_leaks()
     check_codex_project_targeting()
+    check_frontier_lane_contract()
 
     expected_agents = {
         "wayfinder-frontier-worker.md",

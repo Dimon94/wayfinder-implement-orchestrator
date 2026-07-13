@@ -6,11 +6,11 @@ A personal Codex/Claude skill bundle for orchestrating the Matt Pocock skills
 multi-session delivery flow:
 
 ```text
-/wayfinder discovery -> route classifier
+/wayfinder discovery -> ready-frontier scheduler -> route classifier
   -> done
-  -> /to-spec -> /to-tickets -> /implement workers
-  -> /to-tickets -> /implement workers
-  -> /implement workers
+  -> /to-spec -> /to-tickets -> AFK execution lanes
+  -> /to-tickets -> AFK execution lanes
+  -> AFK execution lanes
 -> integration -> summary PR/MR
 ```
 
@@ -42,6 +42,19 @@ installed and callable:
 where a map is complete, needs spec synthesis, needs one implementation ticket
 split, or can go straight to implementation scheduling, then carries the work
 across multiple sessions and one final GitHub PR or GitLab MR.
+
+On both Codex and Claude, each scheduling round recomputes the ready frontier
+and automatically dispatches a maximal safe batch. Design questions fan out as
+fine-grained AFK workers. Once the design is frozen, implementation runs in AFK
+execution lanes: each lane has one owner and one isolated worktree/branch,
+executes its ticket chain serially, and runs concurrently with non-conflicting
+lanes. Ticket checkpoints are not hand-off points.
+
+Workers report only terminal completion or a lane-local blocker. The
+coordinator reads each final report once, integrates in dependency order, and
+immediately recomputes the frontier. Routine progress never needs to be copied
+into the main task; watchdog checks are reserved for missing terminal events,
+setup failures, and tool timeouts.
 
 The ticket-split gate requires a change-surface census across six surfaces
 (production side, consumer projections, legacy-chain counterparts, legacy-truth
@@ -101,18 +114,22 @@ Invoke the Codex version explicitly:
 
 ```text
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
-Run the necessary Wayfinder discovery tickets first; after discovery completes,
-decide whether to stop, synthesize a spec, split implementation tickets, or
-schedule /implement for existing implementation tickets; then finish with one
-summary PR/MR.
+Run the necessary Wayfinder discovery tickets first. At every round, recompute
+the ready frontier and automatically dispatch its maximal safe batch. After
+discovery, decide whether to stop, synthesize a spec, split implementation
+tickets, or execute existing tickets in AFK execution lanes. Keep each lane
+serial and isolated, run safe lanes concurrently, use terminal-only fan-in, and
+finish with one summary PR/MR.
 ```
 
 Invoke the Claude version from a Herdr-managed Claude pane:
 
 ```text
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
-Dispatch discovery, grilling, gate, implementation, and review workers as Herdr
-pane workers.
+Automatically fan out the maximal safe batch of discovery, grilling, gate, and
+review decisions as Herdr panes. Once the design is frozen, schedule isolated
+AFK execution lanes; choose the appropriate Claude-native or Codex-pane runtime
+per lane, run safe lanes concurrently, and collect terminal reports only.
 ```
 
 ## Bundle Format
@@ -147,25 +164,28 @@ The validator checks:
 - referenced `references/` and `assets/` paths
 - Claude helper agent definitions
 - bundle manifest consistency
+- shared frontier, lane, terminal fan-in, placement, and authority invariants
+- no legacy opt-in concurrency, global-queue, idle-wait, or fixed-polling rules
 - no copied cc-dev PDCA state machine
 
 ## Boundary
 
-The Codex version expects Codex thread tools such as `create_thread`,
-`read_thread`, `send_message_to_thread`, and `automation_update`.
+The Codex version uses native tasks to dispatch independent design workers and
+execution lanes automatically. The current task may own one lane while other
+safe lanes run in child tasks. Each lane is serial internally; lane blockers do
+not stop unrelated ready work.
 
-The Claude version expects to run inside Herdr and dispatch independent pane
-workers: `claude --dangerously-skip-permissions` panes for judgment-bearing
-work and `codex -s workspace-write -a never` panes for frozen-spec hands-on
-work. Claude Agent Team is only a pane-local accelerator.
+The Claude version expects to run inside Herdr. It automatically chooses a
+lane-local runtime: `claude-native` for work needing Claude/MCP interaction and
+`codex-pane` for self-contained frozen implementation. A Codex lane starts via
+`herdr agent start`; it receives one lane rather than the global queue. Claude
+Agent Team remains a pane-local accelerator.
 
-The Claude version routes hands-on development execution through a Codex-first
-channel: frozen-spec implementation work is dispatched as dedicated Codex CLI
-panes via `herdr agent start`, sharing the same placement rules, labels,
-agent-list status, and monitoring as Claude panes (both Herdr integrations must
-be installed; check `herdr integration status`). Judgment, design, ticket
-writing, review, and integration stay in Claude; Codex panes never review their
-own output. Routing rules live in
-`claude/skills/wayfinder-implement-orchestrator/references/codex-first-channel.md`.
-If the codex CLI is missing or not authenticated, the work item falls back to
-claude-native execution and the fallback is reported.
+Both runtimes use terminal-only fan-in instead of fixed-interval progress
+polling. Judgment, integration, and remote publication stay with the
+coordinator; execution workers never review their own output. Local execution
+authority is checked before edits, while remote publication authority is only
+required before pushes, PR/MR changes, or remote comments. Claude channel rules
+live in `claude/skills/wayfinder-implement-orchestrator/references/codex-first-channel.md`.
+If Codex is unavailable, affected lanes fall back to `claude-native` without
+serializing unrelated lanes.
