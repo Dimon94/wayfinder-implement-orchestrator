@@ -34,7 +34,7 @@ Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback
   立即停止并报告。
 
 预期产物：
-- Spec URL/body | ticket split proposal/ticket URLs | review report | evidence
+- Spec URL/body | ticket split proposal（附六面普查表）/ticket URLs | review report | evidence
 
 Route 保护：
 - 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate worker。Lead 应报告
@@ -75,6 +75,10 @@ Route 保护：
   label、父引用、依赖文本、checklist 数量，以及源正文里的代码字面量。
 - 如果 create/update 部分成功或读回失败，停止。final report 必须列出所有已
   创建 ID、失败字段，以及 rerun 是否会造成重复工作。
+- `tickets` 门禁的 split proposal 必须附变更面普查表：六面（生产侧、消费投影面、
+  旧链对位、旧真相退役、真实首穿、规模档）每面给出票坐标或 map 边界行；任一面
+  缺失即报告 blocked，不发布 tickets。面定义以 `references/ticket-split-coverage.md`
+  为准，不在本 packet 复述。
 
 执行规则：
 - 使用独立 Herdr worker pane。

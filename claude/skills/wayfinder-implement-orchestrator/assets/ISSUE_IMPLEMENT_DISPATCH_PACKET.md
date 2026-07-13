@@ -69,6 +69,9 @@ Review gate：
 - 不要集成、cherry-pick、push、打开 PR/MR、关闭 tracker issue，或标记 sibling
   work complete。
 - 如果 issue 被阻塞，或验收标准是错的，停止并报告 blocker，不要扩大范围。
+- 隐藏前置升级出口：实现证据暴露票面外活跃消费者、被推翻合同或超出本票安全
+  边界的爆炸半径时，停止并在 final report 的「发现的隐藏前置」给出新前置票建议
+  （消费者/缺口坐标 + 一句建议票名），保持本票原范围。
 - 在本 worker pane final answer 中输出完整 final report。
 - final report 准备好后，在当前 pane 留下紧凑 handoff，供 lead 收集。
 
@@ -87,6 +90,8 @@ Review：pass | blocked | helper fallback <summary>
 Dirty state：clean | dirty <files>
 已改文件：
 -
+发现的隐藏前置：
+- <坐标与建议票名> | none
 阻塞：
 -
 集成建议：integrate | retry | revise-issue | blocked
