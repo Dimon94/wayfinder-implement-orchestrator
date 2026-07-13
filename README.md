@@ -63,6 +63,21 @@ controlled through patch-ticket map anchoring and contract re-freezing; the
 skill's `references/ticket-split-coverage.md` is the source of truth for the
 details.
 
+Every implementation ticket also carries an AI-coding time tier (S/M/L/XL)
+scored from five structural factors: context fan-out, change surface, contract
+novelty, verification distance, and spec gaps. XL tickets must be split before
+publishing, L tickets need a one-line atomicity waiver, lanes self-trip at 2×
+their tier ceiling, and actual wall-clock minutes are appended to the target
+repo's `docs/wayfinder/estimate-log.csv` to calibrate the factor mapping over
+time.
+
+At ticket approval and before dispatch freeze, the coordinator renders a
+self-contained HTML map dashboard to `$TMPDIR/wayfinder-<map-slug>.html`
+(status bar, dependency DAG, execution-lane swimlanes, risk cards, six-surface
+census) and opens it for the user; it is rewritten after every frontier
+recompute, so a pinned browser tab tracks the run live. The spec lives in
+`references/map-dashboard.md`.
+
 ## Install Codex
 
 ```bash

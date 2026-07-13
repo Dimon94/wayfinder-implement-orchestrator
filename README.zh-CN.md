@@ -53,6 +53,16 @@ terminal event 缺失、setup 失败或工具超时时才启用 watchdog。
 规模档六面），执行期通过修补票挂图与合同重冻结控制漂移；细节以 skill 的
 `references/ticket-split-coverage.md` 为真相源。
 
+每张 implementation ticket 还带一个 AI 编程估时档位（S/M/L/XL），由五个结构因子打分
+得出（上下文张开面、改动面、合同新旧、验证距离、票面留白）：XL 必拆后才能发布，
+L 需一行原子性不拆理由，lane 超过 2× 档位上限自熔断，实际墙钟分钟追加进目标仓库的
+`docs/wayfinder/estimate-log.csv`，按精益思路持续校准因子映射。
+
+tickets 审批和 dispatch 冻结前，coordinator 会把票图渲染成自包含 HTML 仪表盘
+（`$TMPDIR/wayfinder-<map-slug>.html`：状态条、依赖 DAG、lane 泳道、风险卡、六面
+普查表）并打开给用户；执行期每次重算 frontier 都覆盖写，浏览器常开即可实时看全局。
+规范见 `references/map-dashboard.md`。
+
 ## 安装 Codex 版
 
 ```bash
