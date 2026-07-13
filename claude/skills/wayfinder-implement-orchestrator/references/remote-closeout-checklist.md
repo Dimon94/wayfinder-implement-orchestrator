@@ -1,20 +1,19 @@
 # PR/MR 收尾清单
 
-只有当所有必要 issue workers 已 terminal，或已明确 out of scope 时才读取本文件。
+只有当全部 execution lanes terminal、ready frontier 为空，或剩余 work 已明确 out of scope
+时才读取本文件。
 
-## Worker Result Audit
+## Execution Result Audit
 
-- 读取每个 worker pane 的 final report；不要只相信 Herdr status 或 notification。
-- 确认 final report 字段：issue、status、worktree、branch、commit、verification、
-  dirty state、touched files、blockers、recommendation。
+- 审计每条 lane 的 terminal final report、ticket checkpoints、commits、verification 和 dirty state；
+  不要只相信 Herdr status 或 notification。
 - 集成前检查每个 commit：`git show --stat --oneline <hash>` 和 focused diff。
 - 拒绝包含无关文件、缺失验证、dirty worktree，或把 blocker 包装成 success 的 commits。
 
 ## Integration Audit
 
-- 只把已验证 worker commits cherry-pick 或以其他方式集成到 integration branch。
-- 每集成一个 worker 后，运行该 issue 的 focused verification。
-- batch 完成后，运行能证明 spec 或 route scope source 的最小 whole-change check。
+- 只集成已验证 lane commits，并遵循 dependency topology。
+- frontier 清空后，运行能证明 spec 或 route scope source 的最小 whole-change check。
 - remote submission 前运行 `/code-review` 或 repo-native review gate。
 - 如果 review gate 要并行 helpers，优先使用 pane-local Claude Agent Team 的
   `wayfinder-integration-reviewer`，并显式传入完整 review 包：base commit、
@@ -28,13 +27,14 @@
 
 - Spec link，或 route 明确跳过 spec 时的 scope source link。
 - 已实现 issue links。
-- Worker pane labels。
+- lane IDs、runtimes、pane labels 和 terminal reports。
 - Integrated commits。
 - Verification commands and results。
 - 被 blocked 或 skipped 的 tickets/issues，以及原因。
 - 已知 residual risk。
 
-如果用户尚未授权 remote action，push/open/update 前先问。
+remote publication authority 只在 push/open/update/comment 前检查；缺失时停在此 gate，不能
+反向阻塞已经授权的本地 lanes、integration 或 checks。
 
 ## Remote Pass Gate
 

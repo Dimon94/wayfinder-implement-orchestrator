@@ -1,220 +1,107 @@
 ---
 name: wayfinder-implement-orchestrator
-description: Orchestrate tracker-backed Wayfinder maps after discovery by deciding whether the current map needs spec synthesis, one ticket-splitting pass, or direct ticket-level Herdr implementation scheduling, then coordinate workers and one summary PR/MR.
+description: Orchestrate tracker-backed Wayfinder maps through concurrent design frontiers, AFK execution lanes, terminal fan-in, and one summary PR/MR.
 ---
 
 # Wayfinder Implement Orchestrator for Claude
 
-只有当用户用 tracker 上的 wayfinder map issue、需要变成 shared map 的松散想法，
-或已批准的 spec/tickets 集合调用时，才使用本 skill。它只负责编排链路；不替代
-`/wayfinder`、`/to-spec`、`/to-tickets` 或 `/implement`。
+只有当用户用 tracker 上的 wayfinder map issue、需要变成 shared map 的松散想法，或已批准的
+spec/tickets 集合调用时，才使用本 skill。它只负责编排链路；不替代 `/wayfinder`、
+`/to-spec`、`/to-tickets` 或 `/implement`。
 
 ## Execution Model
 
-**Herdr pane workers are the default.** Discovery、grilling、gate、implementation 和
-review work 都派发到 Herdr panes；落点不是"当前聚焦的 space"，而是按
-`references/herdr-pane-placement.md` 绑定到 map/issue 对应的 space（workspace）。
-每个 pane 按执行通道运行一个独立 agent 会话：`claude` 或 `codex`。
-Claude worker panes 必须用 `claude --dangerously-skip-permissions` 启动；Codex worker
-panes 按 `references/codex-first-channel.md` 用 `codex -s workspace-write -a never`
-启动。claude pane 的模型按 tab 类型定：G/D/R（判断密集型）追加 `--model claude-fable-5`，
-X/P 跟随默认配置；codex pane 模型由自身配置决定（见 `references/herdr-pane-placement.md`）。
-这样 Herdr 左侧 agent list 能显示两类 worker 的 `idle` / `working` / `blocked` / `done`
-（herdr 的 claude 与 codex integration 都必须已安装），用户也能直接点进 grilling 或
-codex pane 查看与回答。
+每轮都从持久真相源重算 `ready frontier`，选择没有 dependency 或 mutable-resource 冲突的
+`maximal safe batch`。安全并发是默认行为，不需要用户先开启。
 
-Claude Agent Team 只作为 **pane-local accelerator**：某个 worker pane 内需要短时并行
-research、review 或 competing hypotheses 时，可以在那个 pane 内使用 Agent Team。它不
-拥有全局 worker lifecycle，不替代 Herdr panes，也不直接更新 map、spec、tickets 或 PR/MR。
+- **Design fan-out**：一个判断问题一个 Herdr pane；AFK research/evidence/task 自动并发，
+  HITL blocker 只暂停对应 pane。
+- **AFK execution lanes**：一个 lane = 一个 AFK owner + 一个 worktree/branch + 一条可串行
+  验证的 ticket 链。当前 Claude lead 可亲自执行一条 lane，其余 lanes 自动派发。
+- **Terminal fan-in**：lead 只消费 `done` / `blocked` terminal event；每个 final report 只读
+  一次，验证后按依赖拓扑集成，并立刻重算 frontier。没有固定节奏轮询。
 
-开发执行通道按 `references/codex-first-channel.md` 判定：通道决定该 work item 的 pane
-里跑哪个 agent。spec 已冻结的实现型工作默认派成独立 codex pane（`codex-pane` 通道），
-与 claude panes 共用同一套落点、监控和状态；判断、设计、工单、review、集成永远留在
-Claude。调度 Codex 只允许 Herdr pane 派发——禁止在任何 Claude 会话的 Bash 里手搓
-`codex exec` 兜底。
+每条 execution lane 自动选择 runtime：自包含、已冻结、无需 MCP/密钥/HITL/remote write 的
+hands-on work 用 `codex-pane`；需要 Claude 会话工具、tracker write、用户判断或不可逆操作的
+work 用 `claude-native`。runtime 是 lane-local routing，不需要逐 lane 征求用户同意。
 
-如果 `HERDR_ENV=1` 不存在，停止创建 workers，输出可复制的 manual worker packets，并说明
-需要从 Herdr-managed pane 运行。
+Claude Agent Team 只作为 pane-local accelerator，不拥有全局 lifecycle，不更新 map/spec/
+tickets/PR/MR。Codex 只允许 Herdr pane 派发，禁止在 Claude Bash 里手搓 `codex exec`。
+
+如果 `HERDR_ENV=1` 不存在，停止创建 workers，当前 lead 可继续一条安全 lane，并为其余 ready
+work 输出完整 manual packets。
 
 ## Startup Gates
 
-1. 读取或创建最小 wayfinder map issue、最近的 repo instructions、
-   `docs/agents/issue-tracker.md` 的 Wayfinding operations，以及已引用 artifacts。
-   完成标准：map 坐标、Destination、Decisions-so-far、Not yet specified、
-   Out of scope、tracker child/blocking/frontier/assignee claim 表达方式、当前真相源坐标、
-   open、未阻塞且 unassigned 的 discovery frontier 都已知道或标为 `Unknown`。
-   如果用户给的是松散想法而不是现有 map issue，先按 `/wayfinder` chart-map 流程命名
-   Destination 并 breadth-first 探 fog；如果没有 in-scope fog，说明不需要 map，停止并
-   问用户要直接进入哪种单 session 路径，不要创建空 map。
-2. 加载 `references/gate-state-machine.md`。完成标准：当前 gate、真相源和下一 gate 已识别；
-   如果 in-scope Wayfinder child issues 都已 closed，已用 post-discovery route classifier 选择
-   `wayfinder-complete`、`needs-spec`、`needs-implementation-tickets` 或
-   `direct-implementation-dispatch`，并写出证据。
-3. 当前 gate 涉及根因、因果、冲突、隐藏假设或不确定影响时，加载
-   `references/toc-thinking-processes.md`。完成标准：缺失 CRT 边、
-   Conflict Cloud 假设、Injection 证据、PRT 障碍或 NBR 风险已记录为 frontier /
-   user stop / `Unknown`。
-4. 加载 `references/fresh-session-boundaries.md` 和 `references/codex-first-channel.md`。
-   完成标准：每个 work item 已分类为 Herdr pane worker、pane-local Agent Team helper、
-   lead-owned gate 或 user stop；每个可执行 work item 已标注执行通道 `codex-pane`
-   或 `claude-native`，并记录判定依据。
-5. route 进入 tickets gate，或执行期出现修补票、被推翻合同或票面外发现时，加载
-   `references/ticket-split-coverage.md`。完成标准：变更面普查六面各有票或 map
-   边界行；执行期新票已挂图；被推翻合同已有 supersede note 与重冻结前置。
-6. 按即将派发的 work 类型加载 dispatch packet：
-   - gate/review/evidence：`assets/GATE_CHILD_DISPATCH_PACKET.md`
-   - discovery：`references/wayfinder-frontier-loop.md` 和
-     `assets/WAYFINDER_TICKET_DISPATCH_PACKET.md`
-   - grilling：`assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`
-   - implementation：`assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md`、
-     `assets/CODEX_PANE_DISPATCH_PACKET.md` 和 `references/codex-first-channel.md`
-7. 创建、补建或替换任何 Herdr pane 前加载 `references/herdr-pane-placement.md`。
-   完成标准：每个 worker 的目标 space 已按 map key 解析、目标 tab 已按会话类型
-   （G/X/P/R/D）解析并显式写入创建命令；tab 满员（4 个 issue）时已新建同字母 tab；
-   每个新 pane 已验证落点且 tab label 已同步存活编号。
-8. workers 正在运行时加载 `references/child-monitoring.md`。完成标准：每个 worker 都有
-   pane label、任务、真相源、停止条件、回报格式、完成主动提醒通道（claude pane 的
-   WAKE 或 codex pane 的后台 `herdr wait agent-status` 兜底），且每次检查含上下文
-   余量收线判断。
-9. 收尾 summary PR/MR 时加载 `references/remote-closeout-checklist.md`。完成标准：
-   worker results、commits、checks、issue links、CI/CD 和 review-agent verdicts 已映射。
+1. 读取 map issue、repo instructions、tracker operations 和引用 artifacts。识别 Destination、
+   Decisions-so-far、Not yet specified、Out of scope、真相源、frontier 和 claim 规则。
+2. 加载 `references/gate-state-machine.md`，识别当前 gate、route 和通过证据。
+3. 涉及根因、因果、冲突、隐藏假设或不确定影响时，加载
+   `references/toc-thinking-processes.md`。
+4. 加载 `references/frontier-lanes.md`、`references/fresh-session-boundaries.md` 和
+   `references/codex-first-channel.md`。完成标准：ready frontier、maximal safe batch、lane
+   坐标、runtime 和 terminal channel 已明确。
+5. 进入 tickets gate 或出现执行期漂移时，加载 `references/ticket-split-coverage.md`。
+6. 按 work 类型加载 packet：gate/review/evidence 用 `GATE_CHILD_DISPATCH_PACKET.md`；
+   discovery 用 `wayfinder-frontier-loop.md` 与 `WAYFINDER_TICKET_DISPATCH_PACKET.md`；
+   grilling 用 `WAYFINDER_GRILLING_DISPATCH_PACKET.md`；execution lane 按 runtime 用
+   `ISSUE_IMPLEMENT_DISPATCH_PACKET.md` 或 `CODEX_PANE_DISPATCH_PACKET.md`。
+7. 创建 pane 前加载 `references/herdr-pane-placement.md`，显式解析 space/tab/pane 落点。
+8. workers 运行时加载 `references/child-monitoring.md`，建立 terminal fan-in 与 watchdog。
+9. 收尾 summary PR/MR 时加载 `references/remote-closeout-checklist.md`。
 
-## Pane Dispatch Rules
+## Dispatch Rules
 
-- 创建 workers 前确认 `HERDR_ENV=1`。缺失时不要假装并行派发。
-- 使用 `herdr` CLI 创建 worker panes，pane label 格式为 `#<issue编号> <极短摘要>`，
-  例如 `#142 通道确认`、`#147 拆票器`。
-- Pane 落点必须显式指定：按 `references/herdr-pane-placement.md` 把 map/issue 绑定到
-  目标 space，再按会话类型（G 拷问/X 执行/P 原型/R 评审/D 诊断调研）绑定到类型 tab，
-  创建命令必须带 `--workspace <id>` + `--tab <id>`（或 `--pane <id>`/`--current`）和
-  `--no-focus`。禁止裸 `herdr pane split` / `herdr agent start`——它们的落点是用户
-  当前聚焦的 space，会把 worker 派进无关位置。
-- 每个类型 tab 最多 4 个并发 issue，label 为 `<字母>-<存活编号·…>`；满员时新建同
-  字母 tab。派发和收尾都必须同步 `tab rename`，让 tab label 永远只列存活 issue；
-  空 tab 立即关闭。详见 `references/herdr-pane-placement.md`。
-- 每个 worker pane 运行独立 agent 会话，启动命令按通道：claude pane 必须是
-  `claude --dangerously-skip-permissions`，codex pane 必须是
-  `codex -s workspace-write -a never`（升级 flag 只能由 lead 按
-  `references/codex-first-channel.md` 显式决定）。claude pane 按 tab 类型追加模型参数
-  （G/D/R 用 `--model claude-fable-5`，X/P 跟随默认，见
-  `references/herdr-pane-placement.md`）。Prompt 必须包含：map/issue title link、目标 gate、真相源、允许编辑范围、
-  禁止动作、完成标准、回报格式、blocked 时要问用户的问题格式，以及 claude pane 的
-  回信地址与 WAKE 求助规则（见 `references/herdr-pane-placement.md`）。
-- 每个 worker 的 pane 创建、prompt 投递和 tab 改名是原子组：`herdr agent start` 成功后
-  立即 `herdr pane send-text <pane_id> <filled-dispatch-packet>`，再 `herdr tab rename`
-  同步编号，确认完成后再创建下一个 worker pane。不要批量建完所有 pane 再统一发
-  prompt——空 pane 窗口浪费时间且让 agent list 显示假 idle。
-- 多个独立 work items 的 **执行** 不串行化：所有 workers 拿到 prompt 后同时运行，
-  lead 不等 worker A 完成再派发 worker B；但派发动作本身（创建 + 投递）是顺序的。
-- Prototype、Grilling 和 HITL Task workers 在需要用户回答时必须在自己的 pane 里留下
-  清晰问题，并进入 blocked。推荐答案只能帮助用户判断，不能替用户确认。
-- Implementation workers 一个 tracker issue 一个 worktree 一个 pane（两种通道都适用）。
-  会改文件的 claude worker 先产出 plan，lead 批准后才实现；codex pane 的计划由 lead
-  在工单里冻结后再派发。避免多个 panes 编辑同一文件或同一迁移序列。
-- 派发本地图第一个 implementation issue 前，lead 必须按
-  `references/codex-first-channel.md` 的地图级通道确认流程，把全部 implementation
-  issues 的通道分配方案（issue title link + 通道 + 一句依据）交用户确认一次；确认后
-  整张地图沿用该方案，后续派发不再逐票询问，回退只写进 readback。
-- Implementation issue 默认走 `codex-pane` 通道：lead 按
-  `references/codex-first-channel.md` 用 `assets/CODEX_PANE_DISPATCH_PACKET.md` 把冻结
-  好的工单直接派进独立 codex pane；Claude 侧负责工单、diff review、验证和 commit，
-  codex pane 永不 review 自己。通道决定与回退情况必须写进 dispatch packet 和 readback。
-- Lead 只拥有 gates、用户判断、scope approval、ticket split approval、integration、
-  remote comments、PR/MR authority 和最终完成判断。
+- 创建 pane 前确认 `HERDR_ENV=1`；否则不伪造并发。
+- design pane label 为 `#<issue> <摘要>`；execution pane label 为
+  `L<lane>(#<issue>) <摘要>`。创建命令显式带目标 workspace/tab 和 `--no-focus`。
+- Claude pane 用 `claude --dangerously-skip-permissions`；Codex pane 用
+  `codex -s workspace-write -a never`。sandbox escalation 必须由 lead 单独授权。
+- create、send-text、pane rename、tab rename 是一个原子组；完成后再创建下一 pane。
+- 每轮自动派发 maximal safe batch。重叠 mutable resources 只让相关 work 串行，不把整个
+  frontier 降成串行。
+- lane blocker 只停本 lane；lead 处理 terminal report 后立即重算并继续其他 ready work。
+- workers 不创建 descendants、不集成、不 push、不开 PR/MR。lead 持有 route、用户判断、
+  fan-in、integration 和 remote publication authority。
 
 ## Worktree Policy
 
-- Implementation workers 必须使用独立 git worktree 和独立 branch。创建 worktree 失败时，
-  不得创建对应 Herdr pane worker；先把失败原因交回 lead。
-- 创建前记录 source worktree 当前 branch 作为 base/ref。Branch 必须通过 worktree 创建流程
-  生成，不能在项目主目录/source worktree 里 `git switch` / `git checkout` 到新 branch。
-  首选命令形态：
-  `git worktree add -b <branch> <worktree-path> <base-ref>`。
-- Discovery、grilling、research、spec、ticket-splitting 和 review workers 默认不创建
-  worktree；除非它们需要修改 repo 文件，且 lead 明确批准。
-- 不允许任何 worker 切换 source worktree 的 branch。需要新 branch 时，只能在该 worker
-  的目标 worktree 内创建或切换。
-- Worktree path 和 branch name 必须在 dispatch prompt 中写明，并出现在 worker 回报里。
-- Worktree 创建完成标准：`git worktree list` 能看到目标 path，目标 path 当前 branch 是
-  dispatch 指定 branch，该 branch 名唯一对应一个 tracker issue，且 source worktree 的
-  当前 branch 与创建前完全相同。
-- Worker 完成且 lead 已集成需要的 commits/artifacts 后，必须关闭 worker branch 和
-  worktree：先确认目标 worktree 无未保存变更，再 `git worktree remove <worktree-path>`，
-  然后删除本地 branch。使用安全删除优先；如果 branch 删除被拒绝或 cleanup 会丢变更，
-  停止并交回 lead。不要在未授权时删除 remote branch。
-- Worktree 收尾完成标准：`git worktree list` 不再包含目标 path，`git branch --list
-  <branch>` 不再返回该本地 branch，source worktree 当前 branch 仍与派发前相同。
-- 推荐命名：branch `wf/<issue-slug>`；path `<repo-parent>/<repo-name>-wf-<issue-slug>`。
+- 每个 execution lane 使用独立 worktree/branch；共享 worktree 同时只允许一个 writer。
+- 创建前记录 source worktree branch。用
+  `git worktree add -b <lane-branch> <lane-path> <base-ref>` 创建，不切换 source worktree。
+- lane path/branch 写入 packet 和坐标记录。推荐 branch `wf/<map-slug>-l<lane>`，path
+  `<repo-parent>/<repo>-wf-<map-slug>-l<lane>`。
+- design/read-only workers 默认不建 worktree；需要 repo writes 时也遵守一 writer 一 worktree。
+- lane terminal 后先验证 clean state 和 commits；集成完成且不再复用时安全移除 worktree。
 
-## Truth Rules
+## Truth and Authority Rules
 
-- 所有面向用户、worker pane、handoff 和 PR/MR comment 的自然语言都用中文。skill 名、
-  tool 名、状态枚举、路径、分支名、commit hash 和代码字面量保持原样。
-- 每个 gate 只保留一个真相源：discovery 用 `wayfinder:map` issue 和 child issues；
-  product scope 只在 route 选择 `needs-spec` 时用 spec issue/doc；implementation tickets 用
-  tracker tickets/issues；execution 用 worker readback 加 Git commits；final review 用 PR/MR。
-- Wayfinder map 是 index，不是 store。决策细节留在 resolved child issue 的 resolution
-  comment 和 linked artifacts；map 的 Decisions-so-far 只追加 title link 加 gist。
-- Wayfinder 默认是 planning：discovery tickets 产出 decisions、evidence 和必要
-  linked artifacts，不交付 Destination 本身。只有 map 的 Notes 明确授权本轮把
-  execution 带进 map 时，才允许 discovery worker 做超出决策清障的执行。
-- Wayfinder map 的 Destination 固定本轮边界；Not yet specified 只放仍然 in-scope
-  但还不能成票的 fog，Out of scope 只放已 ruled beyond destination 的 work。
-- 术语必须分层：Wayfinder child issue/ticket 是 `wayfinder:research`、
-  `wayfinder:prototype`、`wayfinder:grilling` 或 `wayfinder:task`，用于发现和决策；
-  implementation ticket 是 `/to-tickets` 或人工发布的交付票，用于 `/implement`。不要把
-  closed Wayfinder child issues 当成 implementation tickets。
-- Discovery frontier 清空不等于进入 spec。加载 `gate-state-machine.md` 的 route
-  classifier，从持久真相源选择一个 route，并且只执行已选 route 的后续 gate。
-- Wayfinder ticket mode 必须显式识别：`Research` 是 AFK，`Prototype` 是 HITL，
-  `Grilling` 是 HITL，`Task` 可以是 HITL 或 AFK。HITL ticket 只能通过真人反馈
-  resolve；worker 可以给推荐答案，但不能把推荐当成用户回答。
-- `wayfinder:task` 只做让后续 decision 可判断的前置清障，例如申请访问、搬数据或
-  暴露事实；它不能变成实现 Destination 的交付票。
-- 每次派发 worker batch 前，从当前 gate 真相源现算一行 `进度快照`，并填入每个
-  dispatch packet；不要把进度写成 map 节点或长期状态。快照只写已验证事实：
-  当前 gate、完成/运行/阻塞数量、正在派发的 batch、下一 gate 或 blocker。
-- 面向人读的 map/ticket 引用用 issue title link；裸 id/number/url 只作为坐标。
-- Discovery worker 必须回答一个具体 TOC 缺口：CRT 因果边、Conflict Cloud 假设、
-  Injection 证据、PRT 障碍或 NBR 风险。Loose topic 先改写成缺口，再派发。
-- 只在 gate 判断处问用户：未解决 discovery choice、spec seam approval、ticket split
-  approval、实现派发前的地图级通道确认（一次）、模糊 dispatch batch、integration 失败、
-  未授权 remote action、有效的 review-agent rejection，或 `Unknown` review-agent
-  rejection。
-- Summary PR/MR 打开不等于完成。只有 remote CI/CD 通过，且远程 review Agent 评论说
-  PR/MR can pass，才算完成。
-- 不要调用或复制 cc-dev workflow。本 skill 有自己的 gates，且没有 `task.md` contract。
+- 面向用户、worker 和 PR/MR 的自然语言用中文；skill/tool/status/path/hash 保持原样。
+- map 是 index，不是 store。discovery details 留在 child resolution 与 artifacts。
+- discovery frontier 清空后运行 route classifier，不默认进入 spec。
+- Wayfinder child ticket 是 discovery/decision work；implementation ticket 才进入 `/implement`。
+- 每次 dispatch 或 terminal event 从 tracker/Git 重算 `进度快照`，不沿用聊天记忆。
+- local execution authority 在 worktree 创建、文件修改和本地 commit 前检查。
+- remote publication authority 只在 push、open/update PR/MR 或 remote comment 前检查；缺失
+  remote authority 不阻塞本地 lanes。
+- HITL ticket 只能由真人反馈 resolve。用户判断只阻塞相关 item，不冻结其他 safe work。
+- Summary PR/MR 只有 CI/CD 通过且 remote review Agent 明确 can pass 才完成。
+- 不调用或复制 cc-dev workflow；本 skill 有自己的 gates。
+
+## AFK Continuation
+
+Claude/Codex 自动压缩是正常续航机制。lane 从 packet、tracker、Git、checks 和 checkpoint
+commits 重建，不因上下文增长 hand-off。只有合同被证据推翻、需要用户判断、缺少 local
+authority 或安全边界失效时暂停对应 lane。
 
 ## Minimal Run
 
-用户说：
-
-```text
-使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
-先跑必要 discovery tickets；discovery 完成后判断是需要 spec、只需要拆一次 implementation tickets，
-已有 tickets 只需要调度 `/implement` workers，还是 Wayfinder 已完成应停止；最后汇总到
-一个 summary PR/MR。
-```
-
-执行：
-
-1. 先读取 Destination、Decisions-so-far、Not yet specified 和 Out of scope，再查询
-   open、未阻塞且 unassigned 的 discovery child issues，为每个 ready frontier 创建
-   Herdr pane worker；每轮结束重读 map issue 和 frontier。
-2. discovery 完成后运行 post-discovery route classifier：`wayfinder-complete` 停止；
-   `needs-spec` 才进入 spec；`needs-implementation-tickets` 直接进入 implementation
-   ticket split；`direct-implementation-dispatch` 直接进入 dispatch。
-3. 如果选择 `needs-spec`，创建 `/to-spec` gate pane worker；遇到 seam approval 回到 lead
-   停止；然后发布 spec，再判断是否需要 tickets。
-4. 如果选择 `needs-implementation-tickets`，用 map/spec 的当前真相源创建
-   implementation ticket-splitting gate pane worker；遇到 split approval 回到 lead
-   停止；然后按依赖顺序发布 implementation tickets。
-5. 如果选择 `direct-implementation-dispatch` 或 tickets 已发布，对 ready implementation tickets 先创建
-   独立 worktree 和 branch，再创建 pane workers。
-   一个 tracker issue 一个 worktree，一个 tracker issue 一个 pane。
-   每个 issue 按 `references/codex-first-channel.md` 判通道；首个 implementation
-   issue 派发前先把整张地图的通道分配方案交用户确认一次，确认后全图沿用。默认派
-   独立 codex pane 执行，review 与 commit 留在 Claude 侧。
-6. Lead 综合 worker 回报，集成已验证 commits，关闭已集成 worker 的 worktree 和本地
-   branch，运行 focused 和 whole-change checks，打开或更新 summary PR/MR，然后等待 CI/CD
-   和 review-agent approval。
+1. 读取 map 与 frontier，自动并发派发 design maximal safe batch。
+2. 每个 terminal event 到达时只读一次 final report，更新真相源并重算 frontier。
+3. discovery 完成后选择 `wayfinder-complete`、`needs-spec`、
+   `needs-implementation-tickets` 或 `direct-implementation-dispatch`。
+4. implementation ready 后，为 maximal safe batch 建立独立 lanes；当前 lead 可执行一条，
+   其余按 lane 特征自动选择 `claude-native` 或 `codex-pane`。
+5. 每条 lane AFK 执行、验证、review、checkpoint；blocked 只停本 lane。
+6. terminal fan-in 按拓扑集成并持续重算 frontier；全部清空后运行 whole-change gates。
+7. 获得 remote publication authority 后 push/open summary PR/MR，等待 CI/CD 与 review verdict。

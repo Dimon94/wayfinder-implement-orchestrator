@@ -10,14 +10,15 @@
    不要从 map 正文推断 open tickets。
    同时查询 open 但仍被 blocking 阻塞或已 assigned 的 in-scope child issues，用来判断
    discovery 是否真的完成。
-3. 自动派发只覆盖 AFK discovery：`Research` 和可自动执行且只为 decision 清障的
-   `Task` child issues，使用 `WAYFINDER_TICKET_DISPATCH_PACKET.md`。
+3. 从 ready frontier 选择没有 tracker-write 或 artifact-write 冲突的 maximal safe batch。
+   自动派发 AFK `Research` 和只为 decision 清障的 `Task`，使用
+   `WAYFINDER_TICKET_DISPATCH_PACKET.md`；不需要用户先开启并发。
    `Prototype`、`Grilling` 和 HITL `Task` 必须有真人参与；没有可参与的用户 pane 时，
    生成对应 prompt/worker 坐标并停止为 `ask-user`。
-4. 派发后使用 `child-monitoring.md`；不要让 lead pane 循环一直开着。
-5. 5 分钟检查时读取 worker final reports，然后重读 map issue 的 Destination、
-   Decisions-so-far、Not yet specified、Out of scope 和 frontier query。
-6. 只要还有新的 open、未阻塞且 unassigned 的 discovery child issues，就从第 1 步重复。
+4. 派发后进入 `child-monitoring.md` 的 terminal fan-in；不读取 routine progress。
+5. 每个 terminal event 只读一次 final report，更新对应 ticket/artifact，然后重读 map 与
+   frontier query；不等待同批全部 workers。
+6. 立即派发下一 maximal safe batch，直到 frontier 清空或只剩真正 blocked/HITL work。
 
 ## 停止
 
@@ -32,7 +33,7 @@
   HITL `wayfinder:task`，或需要实时用户判断；加载
   `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`，输出一个用于完整 HITL 会话的
   已填写 prompt，然后等待 returned handoff 再继续。不要每个问题创建一个 prompt；
-- worker 报告 `ask-user`、`blocked` 或 `Unknown`；
+- worker 报告 `ask-user`、`blocked` 或 `Unknown` 时只暂停对应 item；若其他 ready work 存在则继续；
 - 两个 worker panes 编辑了同一个 child issue，或留下冲突 tracker state。
 
 对非判断类 tickets，copy-paste worker prompts 只是 `HERDR_ENV` 缺失或 Herdr pane

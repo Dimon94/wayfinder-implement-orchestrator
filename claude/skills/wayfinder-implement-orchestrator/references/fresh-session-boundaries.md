@@ -1,82 +1,56 @@
-# Herdr Worker 边界
+# Coordinator、Worker 与 Execution Lane 边界
 
-派发任何可执行工作前读取本文件。
+派发 design work 或进入 implementation 前读取本文件，并同时读取 `frontier-lanes.md`。
 
-## 默认 Worker
+## Coordinator 持有
 
-- Wayfinder AFK `Research` 和可自动执行的 `Task` child issues：每个 child issue
-  一个 Herdr `/wayfinder` worker pane。
-- Wayfinder `Prototype`、`Grilling` 和 HITL `Task` child issues：只在用户能进入该
-  pane 反馈时派发；否则 lead 停在 `ask-user`，并给出完整 pane prompt。
-- Worker 发现的 Wayfinder follow-up tickets：lead 重读 map issue 和 frontier query，
-  然后派发下一批 Herdr worker panes；workers 不打开后代 panes。
-- Wayfinder complete：当 route classifier 选择 `wayfinder-complete`，lead 报告 map
-  已达 Destination 并停止，不派发 spec、implementation ticket split 或 `/implement`。
-- Spec synthesis：仅当 route classifier 选择 `needs-spec`，且 seams 已批准时，用 Herdr
-  `/to-spec` gate worker 基于 map proof 起草或发布；否则 worker 返回 seam proposal，
-  由 lead 问用户。`needs-implementation-tickets` 或 `direct-implementation-dispatch`
-  路线禁止补造 spec。
-- Implementation ticket splitting：当 route classifier 选择
-  `needs-implementation-tickets`，或 `needs-spec` 路线已发布 spec 且仍需
-  implementation tickets 时，用 Herdr `/to-tickets` gate worker 起草或发布；如果 split
-  尚未批准，lead 先问用户再发布。
-- Implementation：当 route classifier 选择 `direct-implementation-dispatch`，或 tickets
-  gate 已经发布且读回 ready tickets 后，每个 tracker implementation ticket/issue 一个 Herdr `/implement`
-  worker pane。
-- Integrated review：lead 集成后，在可用时使用 Herdr read-only review worker 或
-  pane-local Agent Team review helper。
-- Remote CI/CD 或 review-agent fixes：把每个需要改代码的 fix 转成 tracker issue，
-  或 lead 明确批准的 micro-issue，再派发 Herdr `/implement` worker。
-- 有争议的 review-agent comments：如果 verdict 不明显，用 read-only worker 收集
-  证据，然后 lead 发布 PR/MR rebuttal/adaptation note。
+- route、human judgement、scope/ticket approval 和 user questions；
+- 每轮 ready frontier、maximal safe batch、lane/runtime 选择；
+- Herdr pane placement、terminal fan-in、integration 与冲突处理；
+- tracker/map 的跨 item 写入，以及所有 remote publication actions；
+- 最终 whole-change review、CI/CD 与完成判断。
 
-## 执行通道
+Coordinator 可以亲自成为一个 execution lane 的 owner，但不能因此阻塞其他 safe lanes。
 
-Boundaries 决定 work item 拆成哪些 panes；`codex-first-channel.md` 决定每个 work item
-的 pane 里跑哪个 agent。派发前给每个可执行 work item 标注 `codex-pane` 或
-`claude-native`。
+## Design Workers
 
-- Implementation work item：spec 已冻结的写码工作默认 `codex-pane`——独立 codex pane，
-  工单用 `CODEX_PANE_DISPATCH_PACKET.md`；微小改动、需要会话内工具或 codex pane
-  不可用时 `claude-native`（`/implement` claude pane）。
-- Discovery `Research` 的大批量代码阅读：可派只读工单的 codex pane；决策、
-  ticket resolution 和 map 写操作永远留在 Claude。
-- Grilling、spec、ticket split、review、integration、remote 操作：永远 `claude-native`。
+- 一个 worker 只回答一个判断问题，只写自己的 ticket/artifact。
+- AFK `Research`、evidence 和可自动 `Task` 按 maximal safe batch 自动并发。
+- `Prototype`、`Grilling` 和 HITL `Task` 的用户等待只阻塞对应 pane。
+- worker 可建议 follow-up，但不创建 descendants、不选择 route、不集成。
+- spec、ticket split 和 review 仍是独立 gate workers；它们 terminal 后回 coordinator fan-in。
 
-## Lead 持有
+## AFK Execution Lanes
 
-- Human judgement gates 和 user questions。
-- 判断哪个 worker batch 可以安全派发。
-- Herdr pane creation、pane labels、worker coordinate records 和 5 分钟检查节奏。
-- Wayfinder frontier query、selection 和下一轮 dispatch。
-- Integration branch cherry-picks、conflict resolution，以及 PR/MR push/open/update。
-- PR/MR comments、review-agent rebuttals，以及 final remote-gate completion。
-- 创建 worktree 或需要分支时，只在目标 worktree 目录内创建/切换分支；不要切换
-  主目录/source worktree 的分支。
+进入 implementation 前冻结 scope、dependency、acceptance、禁止范围和 local execution
+authority。每个 lane 独占一个 worktree/branch，执行一条可串行验证的 ticket 链。
 
-## 应该停止
+- maximal safe batch 中每张票启动一条 lane；当前 lead 可执行一条，其余自动派 pane。
+- runtime 按 lane 特征自动选择：自包含 frozen hands-on work 用 `codex-pane`；需要 MCP、
+  tracker writes、HITL 或不可逆操作用 `claude-native`。
+- lane 内每票 `/implement`、focused verification、review、checkpoint commit 后，可继续领取
+  一个无冲突且 prerequisites 已满足的 direct dependent。
+- checkpoint 不等待用户。自动压缩后从 packet、tracker、Git 和 commits 重建。
+- blocker 只停止本 lane；其他 lanes 继续。只有 blocker 支配全部剩余 frontier 才全局停下。
+- lane 不 push、不开 PR/MR、不写 remote comment；这些动作回 coordinator。
 
-不要为 live user grilling、未解决的 product choices、不清晰的 route、未批准的 ticket
-splits、重叠 mutable resources、缺失 source truth，或任何无法从持久真相源验证验收标准的
-work item 创建 Herdr worker pane。
+## Authority Boundary
 
-## 最小 Worker Prompt
+- local execution authority 在创建 worktree、编辑和 commit 前检查。
+- remote publication authority 在 push、open/update PR/MR、remote comment 前检查。
+- 缺失 remote authority 不阻塞 design workers、本地 execution lanes、checks 或 integration。
 
-Spec、ticket-splitting、review 和 evidence-gathering workers 使用
-`GATE_CHILD_DISPATCH_PACKET.md`。
+## Terminal Boundary
 
-## 外部坐标
+worker 完成或阻塞时输出完整 final report，再发 terminal signal。coordinator 对每条 lane 只读
+一次 final report，验证 commits/checks/dirty state，按依赖拓扑集成并立即重算 frontier。
+normal path 不读 routine progress；watchdog 只处理 startup failure、丢失 signal 或工具 timeout。
 
-如果 source artifacts 不在 worker pane 的当前 repo/worktree 内，把它们作为外部坐标写入
-dispatch packet。map/ticket issue 仍通过 tracker 坐标读写。
+## External Coordinates
 
-记录两组坐标：
+packet 记录两组坐标：
 
-- Execution target：Herdr pane label、worker cwd、worktree/path 和 branch。
-- External coordinates：tracker map/ticket issue URLs、source worktree 里的 proof 和
-  artifact paths。
+- Execution target：lane ID、pane、cwd、worktree、branch、base commit。
+- External coordinates：map/ticket URLs、source worktree proofs、artifact paths。
 
-除非 packet 明确列出 write target，否则 external coordinates 都是只读。对 discovery
-tickets，唯一允许的 external writes 是 tracker map/ticket issues 和列出的 artifact
-paths。用一行向用户报告这个 fallback；Herdr 可创建 pane 时，不要以手动 copy-paste
-instructions 结束。
+除 packet 明确列出的 write targets 外，external coordinates 都是只读。

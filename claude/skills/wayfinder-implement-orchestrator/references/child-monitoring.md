@@ -1,112 +1,45 @@
-# Worker 监控
+# Terminal Fan-in 与 Watchdog
 
-只有在 Herdr worker panes 已经派发后才读取本文件。
+workers 派发后读取本文件。normal path 由 terminal event 驱动，不做固定 cadence 轮询。
 
-## 规则
+## Startup Probe
 
-Lead pane 不要忙轮询 workers，也不要持续积累进度上下文。上下文过长和压缩都会让
-lead 变差。派发后用 Herdr pane 状态做 5 分钟节奏检查。
+- 确认每个 pane 出现在 Herdr agent list，且 workspace/tab、label、work item/lane ID、cwd、
+  branch、真相源和停止条件与 dispatch record 一致。
+- 确认 agent 已启动且完整 packet 已提交。create + send-text 原子组断裂时，用同一 packet
+  重建一次，旧 pane 标为 ignored。
+- 第二次仍失败时，把该 lane 标为 setup blocked；其他 lanes 继续。
+- 记录派发时 `进度快照`，但每次 terminal fan-in 都从 tracker/Git 重算。
+- Herdr pane status 是 lifecycle 提示；final report、tracker 和 Git 才是完成证据。
 
-## 设置
+## Terminal Signals
 
-- 声称已进入监控前，确认每个 worker pane 已在 Herdr agent list 中出现、落在派发
-  记录的目标 space（workspace）里，并有稳定 label、work item ID、真相源和停止条件。
-- 对每个 worker 做 startup probe：打开对应 pane，确认 prompt 已贴入（原子对派发
-  应保证这一点）、对应 agent 会话已启动（`claude` 或 `codex`，按通道），或已有非空
-  final report。
-- 如果 pane 创建失败、pane 为空、进程未启动，或 prompt 不完整（原子对断裂），用
-  同一个 packet 重新执行原子对（创建 + send-text），更新 worker 坐标，并把旧 pane
-  标为 ignored。如果替代 pane 也无法通过 startup probe，停止并询问用户。
-- 记录稳定坐标：space（workspace）label 与 id、pane label、work item ID、
-  worktree/path、branch、tracker links、ignored pane labels 和下一 gate。
-- 包含派发时的 `进度快照`；每次检查只能从真相源重算进度，不沿用旧快照当事实。
-- Herdr pane status 是 worker lifecycle 的真相源。
-- 如果 Herdr status 不可读，保留同一组坐标停止，并给出手动 5 分钟检查清单。
+- Claude pane：输出 final report 后发送
+  `WAKE: <lane-or-item> done|blocked <一句原因>`。
+- Codex pane：lead 启动后台
+  `herdr wait agent-status <pane_id> --status done --timeout <ms>`；`done` 是 Herdr lifecycle
+  terminal，pane final report 再区分 `completed` 或 `blocked` outcome。
+- signal 只用于唤醒，不承载完成证据。ignored/replaced pane 的 signal 直接忽略。
 
-## 5 分钟检查清单
+## Fan-in
 
-每次检查必须使用中文，并包含：
+收到一条 terminal event 时：
 
-- pane labels、work item IDs 和必要 worktree/branch；
-- ignored pane labels 和忽略原因；
-- 仍在 settling 的 worker labels；
-- 派发时的 `进度快照`，以及检查时必须从真相源重算的规则；
-- 每次只打开每个 pane 一次的规则；
-- 不做 full-log summaries 的规则；
-- 每个 worker 的上下文余量与收线阈值（见「上下文收线与续接」）；
-- 只有已验证的 terminal final reports 才能推进 gate 的规则；
-- worker handoff 只是提示，worker final report 才是证据源的规则。
+1. 只读取该 pane 一次，取得末尾完整 final report；不总结 full logs。
+2. 若 report 尚未落盘，允许一次短 grace read；仍缺失则交给 watchdog，不猜测结果。
+3. 验证 ticket/lane ID、commit、focused checks、review、dirty state 和 blocker。
+4. `completed`：按 dependency topology 集成已验证 commits，更新 tracker/map。
+5. `blocked`：只暂停该 lane；记录 blocker/hidden prerequisite，必要时落新票。
+6. 立即从真相源重算 ready frontier，自动派发下一 maximal safe batch；不等待原 batch 全部结束。
 
-## WAKE 信号处理
+## Watchdog
 
-claude worker 会按派发包的求助规则向 lead pane 发送单行
-`WAKE: #<编号> blocked|done <一句原因>`（见 `herdr-pane-placement.md` 的
-"回信地址与 WAKE 求助信号"）。
+watchdog 只在以下异常触发一次状态检查：startup probe 失败、terminal signal 丢失、等待命令或
+工具 timeout。它不建立周期性检查，也不读取 working progress。
 
-- WAKE 等价于把该 worker 的下一次 5 分钟检查提前到现在，且只检查该 pane；其余
-  worker 仍按原节奏。
-- WAKE 正文不是证据。blocked 原因、进度、final report 一律回到 pane 与真相源核实，
-  处理流程沿用下方"唤醒检查"对应条目（blocked 走第 6 条，completed 走第 7 条）。
-- 对已标 ignored / replaced 的 pane 发来的 WAKE 直接忽略。
-- 没收到 WAKE 不代表没事：5 分钟节奏检查照常进行，WAKE 只是提前量。
+- running 且无 terminal report：保留 pane，重新建立一次 terminal waiter。
+- terminal 但 report 缺失：短 grace read 后标为 invalid terminal，要求原 pane补 report。
+- pane 消失或进程失败：保留 worktree/Git 证据，重建 lane 或标 setup blocked。
+- blocker 需要用户/authority：只上报受影响 lane；其他 frontier 继续。
 
-## 完成主动提醒
-
-每个 worker 完成后必须主动唤醒 lead，不等下一次节奏检查：
-
-- claude pane：完成时发 `WAKE: #<编号> done <一句原因>`，是派发包的硬性要求（见上节）。
-- codex pane：worker 发不了 WAKE，lead 在派发该 pane 后立即启动一条后台兜底命令
-  （后台运行，不阻塞 lead）：
-  `herdr wait agent-status <pane_id> --status done --timeout 7200000`。
-  命令因 done 退出即视同收到该 pane 的 done WAKE；超时退出则按节奏检查继续。
-- 收到完成提醒后按"唤醒检查"第 7 条读取 final report 并推进 gate；final report
-  尚未完整时按 settling 处理，不催促、不替换 pane。
-
-## 上下文收线与续接
-
-worker 的聪明区域是已用上下文 ≤ 120K（约窗口 60%）。越过后 worker 判断力下降，触发
-自动压缩更会丢工作状态，所以宁可收线重派，也不让 worker 跑满上下文。收线是 lead
-唯一主动打断运行中 worker 的情形。
-
-- 上下文用量从会话日志精确测量，不打扰 worker、不必打开 pane：
-  - claude pane：日志目录是 `~/.claude/projects/<cwd，非法字符替换为 ->/`（如
-    `/a/b` → `-a-b`），取派发后新建且仍在更新的 `*.jsonl`，读最后一条带
-    `message.usage` 的记录，已用上下文 ≈
-    `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`。
-  - codex pane：日志在 `~/.codex/sessions/<YYYY/MM/DD>/rollout-*.jsonl`，按文件内
-    session 元数据的 cwd 匹配该 pane 的 worktree，读最后一条 `token_count` 事件，
-    已用上下文 ≈ `last_token_usage.input_tokens`，窗口取 `model_context_window`。
-  - 日志无法唯一定位到该 worker 时（如多个会话共用同一 cwd），退回打开 pane 读
-    界面的余量指示。
-- worker 已离开聪明区域且任务尚未接近完成时立即收线：`herdr pane send-text` 发送
-  收线指令，要求 worker 停止开启新工作，把 handoff 回填到该 work item 的 tracker
-  issue comment——已完成并验证的事实、剩余步骤、worktree/branch/commit 坐标、建议
-  的下一步——然后输出以 `HANDOFF` 开头的 final report 并结束。
-- 收到 `HANDOFF` report 后核实 issue 里的回填 comment 存在且四类字段齐全；缺失时向
-  同一 pane 追问一次，仍缺失则 lead 从真相源（commits、pane transcript 尾部）补写。
-- 续接派发：用原 dispatch packet 创建新 pane，prompt 附 handoff comment 的
-  title link 并声明从该 handoff 续接；implementation worker 复用同一 worktree 和
-  branch。旧 pane 标 ignored 并同步 tab rename。
-- 收线只针对上下文余量；进度慢但余量充足的 worker 按原节奏检查。
-
-## 唤醒检查
-
-每次 5 分钟检查：
-
-1. 对每个 worker pane 只读取一次当前状态和末尾 final report 区域。
-2. 忽略任何已记录为 replaced、启动前失败或 not started 的 pane。
-3. 如果 pane 显示 done 但 final report 尚未完整，把该 worker 标为 `settling`：
-   不发纠偏消息，不替换 pane，不判定 blocked。等下一次检查；如果用户正在等待，
-   可以做一次短 grace read。
-4. 如果两次检查后仍是 settling，检查 pane transcript 里的证据或询问用户；不要因
-   进度慢打断仍在运行的 worker。
-5. 如果 worker 正在运行且没有 completed final report，按「上下文收线与续接」的日志
-   测量查一次上下文用量：仍在聪明区域就记录一行状态并停止；已离开聪明区域则收线。
-6. 如果 worker blocked，只读足够证据来分类 `valid`、`invalid` 或 `Unknown`，然后
-   由 lead 询问用户或纠正准确的 worker pane。
-7. 如果 worker completed，读取 final report，确认 handoff 字段，然后把该 work item
-   推进到下一 gate。
-8. 不要把完整 worker logs 总结进 lead pane 上下文。
-
-如果上下文被压缩，从真相源重建：wayfinder map issue、child issues、spec、tracker
-tickets/issues、worker final reports、Git commits 和 PR/MR state。不要相信 lead pane 聊天记忆里的状态。
+上下文压缩后，从 map/spec/tickets、worker final reports、Git commits 和 PR/MR state 重建。
