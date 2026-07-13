@@ -43,6 +43,13 @@ where a map is complete, needs spec synthesis, needs one implementation ticket
 split, or can go straight to implementation scheduling, then carries the work
 across multiple sessions and one final GitHub PR or GitLab MR.
 
+The ticket-split gate requires a change-surface census across six surfaces
+(production side, consumer projections, legacy-chain counterparts, legacy-truth
+retirement, real first pass-through, scale tier), and execution-time drift is
+controlled through patch-ticket map anchoring and contract re-freezing; the
+skill's `references/ticket-split-coverage.md` is the source of truth for the
+details.
+
 ## Install Codex
 
 ```bash

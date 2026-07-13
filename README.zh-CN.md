@@ -41,6 +41,10 @@
 只需拆一次 implementation tickets、或已经可以调度实现，然后编排阶段门禁、worker 派发、
 监控和结果收敛。
 
+拆票门禁要求对变更面逐面普查（生产侧、消费投影面、旧链对位、旧真相退役、真实首穿、
+规模档六面），执行期通过修补票挂图与合同重冻结控制漂移；细节以 skill 的
+`references/ticket-split-coverage.md` 为真相源。
+
 ## 安装 Codex 版
 
 ```bash
