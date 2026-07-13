@@ -1,10 +1,10 @@
-# Wayfinder Ticket 子线程派发包
+# Wayfinder Ticket Worker Packet
 
-用于派发一个 `/wayfinder` discovery child issue 子线程。不要发送半截 prompt。
+用于派发一个 `/wayfinder` discovery 判断问题 worker。不要发送半截 packet。
 
 ```text
 项目：
-父编排线程：
+Coordinator task：
 Wayfinder map issue：
 Ticket issue：
 Ticket title：
@@ -41,15 +41,15 @@ Source worktree：
 - Artifact paths：
 
 执行规则：
-- 使用 fresh session。
+- 使用 fresh successor task。
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
 - 如果 ticket 仍 open 且 unassigned，先 assign 给自己并读回确认；如果已分配给
   别的 session/dev，停止并报告 blocker。
 - 能查到的 fact 自己查；任何 product、architecture、preference 或 risk judgement
   都是 human decision，停止并回报 `ask-user`，不要替用户回答。
 - 不要解决 sibling child issues。
-- 不要创建后续 sessions。不要建议进入 `/to-spec`、`/to-tickets` 或 `/implement`；
-  父编排线程会重查 map/frontier 再判断下一步。
+- 只解决当前 ticket；不要创建 descendants，不要进入 route classifier、`/to-spec`、
+  `/to-tickets` 或 `/implement`。
 - 不要进入 `/implement`。
 - 如果 ticket 是 `wayfinder:task`，只执行让后续 decision 可判断的前置清障；不要把
   task 扩大成实现 Destination 的交付。
@@ -62,10 +62,8 @@ Source worktree：
   Decisions-so-far。
 - 如果 `执行目标` 和 `Source worktree` 不同，只能修改上面列出的外部可写目标；
   其他 source-worktree 路径全部只读。
-- 在本子线程 final answer 中输出完整 final report。
-- 如果 `send_message_to_thread` 可用，final report 准备好之后，向父编排线程
-  发送一个紧凑 handoff。
-- 如果无法 handoff 给父线程或 handoff 失败，在 final report 里说明。
+- 不回报 routine 进度。resolved、blocked 或 ask-user 时输出 final report，并向 coordinator
+  发送 `TERMINAL: <ticket> completed|blocked <一句原因>`。
 
 Final report：
 Ticket：
@@ -76,25 +74,16 @@ Worktree：
 Source worktree：
 分支：
 Commit：<hash subject> | none
-父线程 handoff：sent | unavailable | failed <reason>
 Tracker 变更：
 -
 Artifacts：
 -
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
-父线程下一步提示：
+Coordinator 下一步建议：
 -
 阻塞：
 -
 下一门禁建议：route | more-discovery | ask-user | blocked
 
-父线程 handoff message：
-Ticket：
-状态：
-线程：
-Artifacts：
-新增或解除阻塞的 child issues / Not yet specified / Out of scope：
-阻塞：
-下一门禁建议：
 ```

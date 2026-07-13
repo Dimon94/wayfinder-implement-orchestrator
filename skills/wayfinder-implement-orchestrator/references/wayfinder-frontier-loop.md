@@ -10,13 +10,14 @@
    不要从 map 正文推断 open tickets。
    同时查询 open 但仍被 blocking 阻塞或已 assigned 的 in-scope child issues，用来判断
    discovery 是否真的完成。
-3. 自动派发只覆盖 AFK discovery：`Research` 和可自动执行且只为 decision 清障的
-   `Task` child issues，使用 `WAYFINDER_TICKET_DISPATCH_PACKET.md`。
+3. AFK discovery 的 `Research` 和可自动执行且只为 decision 清障的 `Task` 进入 ready
+   frontier；按 `frontier-lanes.md` 选择 maximal safe batch，用
+   `WAYFINDER_TICKET_DISPATCH_PACKET.md` 自动创建并行 workers。
    `Prototype`、`Grilling` 和 HITL `Task` 必须有真人参与；没有可参与的用户线程时，
    生成对应 prompt/worker 坐标并停止为 `ask-user`。
-4. 派发后使用 `child-monitoring.md`；不要让父线程循环一直开着。
-5. wake-up 时读取 child final reports，然后重读 map issue 的 Destination、
-   Decisions-so-far、Not yet specified、Out of scope 和 frontier query。
+4. coordinator 等 terminal signals，不读 routine progress。
+5. 任一 worker terminal 后只读一次 final report，重读 map issue 的 Destination、
+   Decisions-so-far、Not yet specified、Out of scope 和 frontier query，立即派发新 ready work。
 6. 只要还有新的 open、未阻塞且 unassigned 的 discovery child issues，就从第 1 步重复。
 
 ## 停止
@@ -31,12 +32,12 @@
 - 下一个 frontier child issue 是 `wayfinder:prototype`、`wayfinder:grilling`、
   HITL `wayfinder:task`，或需要实时用户判断；加载
   `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`，输出一个用于完整 HITL 会话的
-  已填写 prompt，然后等待 returned handoff 再继续。不要每个问题创建一个 prompt；
+  已填写 brief，让 successor 在用户反馈后继续作为 owner。不要每个问题创建一个 task；
 - child 报告 `ask-user`、`blocked` 或 `Unknown`；
-- 两个 child sessions 编辑了同一个 child issue，或留下冲突 tracker state。
+- 两个 tasks 编辑了同一个 child issue，或留下冲突 tracker state。
 
-对非判断类 tickets，copy-paste child prompts 只是 `create_thread` 或 project
-targeting 不可用时的 fallback。Codex thread tools 可用时，直接创建 fresh sessions。
+对非判断类 tickets，Codex thread tools 可用时自动并发派发；不可用时当前 task 执行一个
+work item，并输出其余 ready work 的 durable briefs。
 
-父线程负责创建新线程。`/wayfinder` child 可以建议后续 frontier，但不能自己打开
-descendant sessions，也不能建议进入 `/to-spec`、`/to-tickets` 或 `/implement`。
+coordinator 负责 frontier、fan-in 和 route classifier；workers 不进入 `/to-spec`、
+`/to-tickets` 或 `/implement`。

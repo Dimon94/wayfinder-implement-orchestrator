@@ -1,39 +1,54 @@
-# Fresh Session 边界
+# Coordinator、Worker 与 Lane 边界
 
-派发任何可执行工作前读取本文件。
+派发 design workers 或进入 implementation 前读取本文件，并同时读取 `frontier-lanes.md`。
 
-## 默认 Fresh
+## Ownership
 
-- Wayfinder AFK `Research` 和可自动执行的 `Task` child issues：每个 child issue
-  一个 fresh `/wayfinder` child session。
+coordinator 独占 route、用户问题、integration、remote publication 和 terminal fan-in。
+worker 只拥有一个 design question 或一条 execution lane。Codex 自动压缩是每个 task 的
+正常续航机制；压缩后从 tracker、Git 和 PR/MR 重建。
+
+## Design Fan-out
+
+- Wayfinder AFK `Research`、可自动执行的 `Task` 和只读 evidence 从 ready frontier 选择
+  maximal safe batch，自动创建并行 workers；每个 session 只解决一个判断问题。
 - Wayfinder `Prototype`、`Grilling` 和 HITL `Task` child issues：只在用户能进入该
-  child session 反馈时派发；否则父线程停在 `ask-user`，并给出完整 session prompt。
-- child 发现的 Wayfinder follow-up tickets：父线程重读 map issue 和 frontier query，
-  然后派发下一批 fresh sessions；children 不打开后代线程。
-- Wayfinder complete：当 route classifier 选择 `wayfinder-complete`，父线程报告 map
+  successor task 反馈时 hand-off；否则当前 owner 停在 `ask-user`，并给出完整 task brief。
+- worker terminal 后回报 coordinator；coordinator 验证 final report、重读 map/frontier 并
+  立即派发下一批。worker 不打开 descendants。
+- Wayfinder complete：当 route classifier 选择 `wayfinder-complete`，当前 owner 报告 map
   已达 Destination 并停止，不派发 spec、implementation ticket split 或 `/implement`。
-- Spec synthesis：仅当 route classifier 选择 `needs-spec`，且 seams 已批准时，用 fresh
-  `/to-spec` session 基于 map proof 起草或发布；否则 child 返回 seam proposal，由父线程
-  问用户。`needs-implementation-tickets` 或 `direct-implementation-dispatch` 路线禁止补造 spec。
+- Spec synthesis：仅当 route classifier 选择 `needs-spec`，且 seams 已批准时，派一个
+  `/to-spec` worker。`needs-implementation-tickets` 或
+  `direct-implementation-dispatch` 路线禁止补造 spec。
 - Implementation ticket splitting：当 route classifier 选择
   `needs-implementation-tickets`，或 `needs-spec` 路线已发布 spec 且仍需
-  implementation tickets 时，用 fresh `/to-tickets` session 起草或发布；如果 split 尚未批准，
-  父线程先问用户再发布。
-- Implementation：当 route classifier 选择 `direct-implementation-dispatch`，或 tickets 门禁已经发布
-  且读回 ready tickets 后，每个 tracker implementation ticket/issue 一个 fresh `/implement` child session。
-- Integrated review：父线程集成后，在可用时使用 fresh read-only `/code-review`
-  或 repo-native review child。
-- Remote CI/CD 或 review-agent fixes：把每个需要改代码的 fix 转成 tracker issue，
-  或父线程明确批准的 micro-issue，再派发 fresh `/implement` child。
-- 有争议的 review-agent comments：如果 verdict 不明显，用 fresh read-only child
-  收集证据，然后父线程发布 PR/MR rebuttal/adaptation note。
+  implementation tickets 时派一个 `/to-tickets` worker；如果 split 尚未批准，coordinator
+  先问用户再发布。
 
-## 父线程持有
+## AFK Execution Lanes
+
+- 进入 implementation 前冻结 scope、dependency order、acceptance、禁止范围和 local
+  execution authority。任一项仍是 `Unknown`，留在 design fan-out。
+- ready frontier 的 maximal safe batch 自动建立并行 lanes；当前 task 可执行一条，其他
+  lanes 使用 fresh children。每条 lane 有独立 worktree/branch。
+- Remote CI/CD 或 review-agent fix 先成为 tracker issue 或用户批准的 micro-issue，再由
+  当前 owner 继续 `/implement`。
+- implementation 期间不为上下文容量主动 hand-off；自动压缩后从 issue、Git diff、checks
+  和 commit history 重建。
+- 每张票的 tracker readback、commit 和 checks 是 durable checkpoint。direct dependent
+  ready 且不与 active lanes 冲突时，lane 直接继续；否则 terminal fan-in。
+- 普通实现错误和测试失败由 lane owner 在票面内自行修复。lane blocked 后 coordinator
+  继续其他 safe lanes；只有全局 frontier 被同一 blocker 支配时才停止。
+- remote publication authority 只在 push、PR/MR 或 remote comment 前检查，不阻塞本地 lanes。
+- 有争议的 review-agent comments：如果 verdict 不明显，当前 owner 收集证据，必要时把
+  read-only 判断 hand-off 给 successor，然后由 owner 发布 PR/MR rebuttal/adaptation note。
+
+## Coordinator 持有
 
 - Human judgement gates 和 user questions。
-- 判断哪个 child batch 可以安全派发。
-- `create_thread`、`automation_update` 和 child coordinate records。
-- Wayfinder frontier query、selection 和下一轮 dispatch。
+- 计算 ready frontier、maximal safe batch 和 active lane conflicts。
+- Wayfinder frontier query、selection 和下一步 ownership 决定。
 - Integration branch cherry-picks、conflict resolution，以及 PR/MR push/open/update。
 - PR/MR comments、review-agent rebuttals，以及 final remote-gate completion。
 - 创建 worktree 或需要分支时，只在目标 worktree 目录内创建/切换分支；不要切换
@@ -41,18 +56,19 @@
 
 ## 应该停止
 
-不要为 live user grilling、未解决的 product choices、不清晰的 route、未批准的 ticket
-splits、重叠 mutable resources、缺失 source truth，或任何无法从持久真相源验证验收标准的
-work item 创建 child thread。
+未解决 product choices、不清晰 route、未批准 ticket splits、缺失 source truth 或无法
+验证 acceptance 的 work 不进入 execution lane。重叠 mutable resources 只让相关 work
+串行，不阻止其他 ready work 并发。
 
-## 最小 Child Prompt
+## Worker Dispatch
 
-Spec、ticket-splitting、review 和 evidence-gathering children 使用
-`GATE_CHILD_DISPATCH_PACKET.md`。
+ready safe work 自动创建 children。implementation lane 使用
+`ISSUE_IMPLEMENT_DISPATCH_PACKET.md`；design/review worker 使用对应 brief。所有 workers
+进入 terminal fan-in，不进入 routine progress monitoring。
 
 ## Project Ownership 与未注册 Worktree Targeting
 
-派发前用 `list_projects` 找到源码仓库所属的已保存项目，并把返回值记录为
+派发 worker 前用 `list_projects` 找到源码仓库所属的已保存项目，并把返回值记录为
 `Source owner projectId`。如果 source artifacts 位于无法直接 target 的 Git worktree，
 使用同一仓库的已保存项目；路径接近但属于另一仓库的 project 不是 owner。
 

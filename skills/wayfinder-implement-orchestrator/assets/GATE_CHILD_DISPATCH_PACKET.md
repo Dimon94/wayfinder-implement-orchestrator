@@ -1,11 +1,11 @@
-# 阶段门禁子线程派发包
+# 阶段门禁 Worker Packet
 
-用于派发一个非实现类门禁子线程：spec 合成、ticket 拆分、只读 review
-或证据收集。
+用于派发一个非实现类判断问题 worker：spec 合成、ticket 拆分、
+只读 review 或证据收集。
 
 ```text
 项目：
-父编排线程：
+Coordinator task：
 门禁：spec | tickets | review | evidence
 Post-discovery route：wayfinder-complete | needs-spec | needs-implementation-tickets | direct-implementation-dispatch | n/a
 Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback 的一句话证据>
@@ -39,14 +39,14 @@ Source owner projectId：
 - Spec URL/body | ticket split proposal（附六面普查表）/ticket URLs | review report | evidence
 
 Route 保护：
-- 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate child。父线程应报告
+- 如果 Post-discovery route 是 `wayfinder-complete`，不要运行 gate work。当前 owner 应报告
   Wayfinder map 已达 Destination 并停止。
 - `spec` 门禁只能在 Post-discovery route 是 `needs-spec` 时运行。若 route 是
-  `needs-implementation-tickets` 或 `direct-implementation-dispatch`，停止并报告父线程 route/template 错误，
+  `needs-implementation-tickets` 或 `direct-implementation-dispatch`，停止并报告 route/template 错误，
   不要创建 spec。
 - `tickets` 门禁可以来自 `needs-implementation-tickets`，也可以来自已完成 spec 后的切票。若
   route 是 `direct-implementation-dispatch`，只有在 ready ticket readback 失败、缺依赖/批次判断，
-  或父线程明确要求补 ticket split 时才运行。
+  或用户明确要求补 ticket split 时才运行。
 - 不要把 closed Wayfinder child resolutions 自动整理成 spec。只有它们缺共同 scope
   truth source 时才进入 spec；如果它们已经满足 Destination，route 是
   `wayfinder-complete`；如果用户要求继续交付且它们已经是 implementation-ready decisions，
@@ -83,22 +83,19 @@ Route 保护：
   为准，不在本 packet 复述。
 
 执行规则：
-- 使用 fresh session。
+- 使用 fresh worker task，只拥有当前 gate work。
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
-- 不要再派发子线程。
+- 不要创建由 predecessor 监控的子线程树。
 - 不要进入 `/implement`。
 - 不要集成、push、打开/更新 PR/MR，也不要评论 PR/MR。
-- 在本子线程 final answer 中输出完整 final report。
-- 如果 `send_message_to_thread` 可用，final report 准备好之后，向父编排线程
-  发送一个紧凑 handoff。
-- 如果无法 handoff 给父线程或 handoff 失败，在 final report 里说明。
+- gate completed、blocked 或 ask-user 时输出 final report，并向 coordinator 发送
+  `TERMINAL: <gate> completed|blocked <一句原因>`；不发送 routine progress。
 
 Final report：
 门禁：
 状态：completed | blocked
 线程：
 产物：
-父线程 handoff：sent | unavailable | failed <reason>
 已使用的真相源坐标：
 -
 验证：
@@ -111,11 +108,4 @@ Duplicate/candidate decision：
 -
 下一门禁建议：done | spec | tickets | dispatch | integrate | remote-review | ask-user | blocked
 
-父线程 handoff message：
-门禁：
-状态：
-线程：
-产物：
-阻塞：
-下一门禁建议：
 ```

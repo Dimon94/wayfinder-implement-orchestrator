@@ -1,10 +1,12 @@
 # PR/MR 收尾清单
 
-只有当所有必要 issue children 已 terminal，或已明确 out of scope 时才读取本文件。
+只有当 ready frontier 为空、所有必要 execution lanes 已 terminal，或剩余项已明确 out of
+scope 时才读取本文件。
 
 ## Child Result Audit
 
-- 用 `read_thread` 读取每个 child thread；不要只相信 notification。
+- terminal event 到达后用 `read_thread` 读取该 lane 一次；不要只相信 notification，也不要
+  在工作中读取进度。
 - 确认 final report 字段：issue、status、worktree、branch、commit、verification、
   dirty state、touched files、blockers、recommendation。
 - 集成前检查每个 commit：`git show --stat --oneline <hash>` 和 focused diff。
@@ -12,8 +14,8 @@
 
 ## Integration Audit
 
-- 只把已验证 child commits cherry-pick 或以其他方式集成到 integration branch。
-- 每集成一个 child 后，运行该 issue 的 focused verification。
+- 只把已验证 lane commits 按依赖拓扑 cherry-pick 或以其他方式集成到 integration branch。
+- 每集成一个 lane checkpoint 后，运行对应 issue 的 focused verification，并重算 frontier。
 - batch 完成后，运行能证明 spec 或 route scope source 的最小 whole-change check。
 - remote submission 前运行 `/code-review` 或 repo-native review gate。
 - 如果 review gate 要并行 sub-agents，优先用 `spawn_agent`。
@@ -30,7 +32,7 @@
 
 - Spec link，或 route 明确跳过 spec 时的 scope source link。
 - 已实现 issue links。
-- Child thread IDs。
+- Lane IDs、child thread IDs 和 terminal reports。
 - Integrated commits。
 - Verification commands and results。
 - 被 blocked 或 skipped 的 tickets/issues，以及原因。

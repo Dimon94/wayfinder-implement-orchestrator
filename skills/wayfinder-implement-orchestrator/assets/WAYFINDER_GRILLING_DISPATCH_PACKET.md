@@ -1,13 +1,13 @@
-# Wayfinder HITL 会话派发包
+# Wayfinder HITL Worker Packet
 
 当 wayfinder map issue 走到未阻塞的 `wayfinder:prototype`、`wayfinder:grilling`、
 HITL `wayfinder:task` child issue，或任何需要实时用户判断的 discovery child issue
-时，填写这个 packet。一个 HITL child issue 对应一个用户运行的 fresh thread，承载
+时，填写这个 packet。一个 HITL child issue 对应一个用户运行的 fresh task，承载
 完整真人反馈会话；不要每个问题开一个线程。
 
 ```text
 项目：
-父编排线程：
+Coordinator task：
 Wayfinder map issue：
 Ticket issue：
 Ticket title：
@@ -31,15 +31,15 @@ HITL 目标：
 - 一次只问一个问题并等待用户反馈，然后继续问下一个依赖问题，直到这个 ticket
   resolved 或 blocked。
 - 每个问题都给出你的推荐答案；推荐答案不是用户回答，不能用来替用户确认。
-- 不要在第一个回答之后就返回父线程。
+- 不要在第一个回答之后就结束 owner task。
 - 如果某个 fact 可以通过探索代码库或已链接 artifacts 回答，就先探索，不要问用户。
   决策、偏好、scope tradeoff 和 risk acceptance 必须由用户回答。
 - 如果这是 `wayfinder:prototype`，先做最小可反应 artifact，再请用户反馈；只有用户
   反馈足够支持 resolution 后才 close。
 - 如果这是 HITL `wayfinder:task`，给出精确 checklist 或执行可自动部分；需要用户
   执行/确认的步骤不能由 agent 代答。
-- 不要建议进入 `/to-spec`、`/to-tickets` 或 `/implement`；父编排线程会重查
-  map/frontier 再判断下一步。
+- ticket resolved 后返回 coordinator；不要进入 route classifier、`/to-spec`、
+  `/to-tickets` 或 `/implement`。
 
 真相源：
 - Map issue：<title/link>
@@ -67,11 +67,10 @@ HITL 目标：
   ticket 或删除 fog，并在 Out of scope 追加 title link + gist + ruled-out reason，不要写入
   Decisions-so-far。
 
-返回父线程：
-- 只有当整个 HITL ticket resolved 或 blocked 后，才查找并使用
-  `send_message_to_thread`。
-- 如果可用，把下面的紧凑父线程 handoff 发给父编排线程。
-- 如果不可用，把紧凑父线程 handoff 放进 final answer，供用户粘贴回父线程。
+Terminal：
+- resolved 或 blocked 后输出 final report，并向 coordinator 发送
+  `TERMINAL: <ticket> completed|blocked <一句原因>`。
+- 不发送 routine progress。
 
 Final report：
 Ticket：
@@ -80,26 +79,16 @@ Ticket：
 Worktree：
 分支：
 Commit：<hash subject> | none
-父线程 handoff：sent | unavailable | failed <reason>
 Tracker 变更：
 -
 Docs 变更：
 -
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
-父线程下一步提示：
+Coordinator 下一步建议：
 -
 阻塞：
 -
 下一门禁建议：route | more-discovery | ask-user | blocked
 
-父线程 handoff message：
-Ticket：
-状态：
-线程：
-Tracker 变更：
-Docs 变更：
-新增或解除阻塞的 child issues / Not yet specified / Out of scope：
-阻塞：
-下一门禁建议：
 ```

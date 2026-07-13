@@ -1,13 +1,15 @@
-# Issue 实现子线程派发包
+# AFK Execution Lane 派发包
 
-用于派发一个 issue-level `/implement` 子线程。不要发送半截 prompt。
+用于派发一条以 ready issue 开始的 AFK execution lane。不要发送半截 prompt。
 
 ```text
 项目：
-父编排线程：
+Coordinator task：
+Lane ID：
 父 Spec/Scope source：<spec id/url | Wayfinder map/source issue id/url>
-Issue：
-Issue 标题：
+Initial issue：
+Initial issue 标题：
+可领取 direct dependents：<ids/urls；仍需在领取时重算 prerequisites/conflicts>
 基线分支：
 基线提交：
 Source owner projectId：
@@ -23,7 +25,8 @@ Tracker URL：
 
 路由：
 - 调用 /implement。
-- 只实现这个 issue。
+- 先实现 initial issue。完成 checkpoint 后，只有 direct dependent 的其他 prerequisites 已
+  满足且不与 active lanes 冲突时才继续；否则 lane terminal。
 
 允许范围：
 - 可改路径：
@@ -54,31 +57,31 @@ Review gate：
 
 提交要求：
 - 是否需要 commit：有文件变更则 yes；只读 blocked report 则 no
-- Commit 范围：仅限这个 issue
+- Commit 范围：每张 ticket 一个 checkpoint commit
 
 执行规则：
 - 使用 fresh session，并使用自己的 worktree/branch。
 - 需要分支时，只在本 worktree 目录内创建/切换；不要切换主目录/source worktree 的分支。
-- 不要创建 sibling child threads。
+- 不要创建 sibling child threads；coordinator 负责全局 frontier。
 - 不要集成、cherry-pick、push、打开 PR/MR、关闭 tracker issue，或标记 sibling
   work complete。
-- 如果 issue 被阻塞，或验收标准是错的，停止并报告 blocker，不要扩大范围。
+- 如果 issue 被阻塞，或验收标准是错的，停止本 lane 并报告 blocker；不要阻止其他 lanes。
 - 隐藏前置升级出口：实现证据暴露票面外活跃消费者、被推翻合同或超出本票安全
   边界的爆炸半径时，停止并在 final report 的「发现的隐藏前置」给出新前置票建议
   （消费者/缺口坐标 + 一句建议票名），保持本票原范围。
-- 在本子线程 final answer 中输出完整 final report。
-- 如果 `send_message_to_thread` 可用，final report 准备好之后，向父编排线程
-  发送一个紧凑 handoff。
-- 如果无法 handoff 给父线程或 handoff 失败，在 final report 里说明。
+- lane terminal 时输出完整 final report，并用 `send_message_to_thread` 向 coordinator 发送
+  `TERMINAL: <lane-id> completed|blocked <一句原因>`。不发送 routine progress。
 
 Final report：
-Issue：
+Lane ID：
+Completed issues：
+Remaining/blocked issues：
 状态：completed | blocked
 线程：
 Worktree：
 分支：
 Commit：<hash subject> | none
-父线程 handoff：sent | unavailable | failed <reason>
+Terminal signal：sent | unavailable | failed <reason>
 验证：
 - <command>: pass | fail | blocked
 Review：pass | blocked | sub-agent fallback <summary>
@@ -91,8 +94,8 @@ Dirty state：clean | dirty <files>
 -
 集成建议：integrate | retry | revise-issue | blocked
 
-父线程 handoff message：
-Issue：
+Terminal message：
+Lane ID：
 状态：
 线程：
 Commit：
