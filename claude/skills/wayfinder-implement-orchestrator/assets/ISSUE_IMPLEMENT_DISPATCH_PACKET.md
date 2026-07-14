@@ -37,12 +37,14 @@ Base commit：
 - 只有 direct dependent prerequisites 已满足且不与 active lanes 冲突时才继续领取。
 - 不创建 sibling panes，不集成、不 push、不开 PR/MR；remote publication 归 coordinator。
 - blocker 或 hidden prerequisite 只停止本 lane，不标记其他 lanes blocked。
-- 每个 checkpoint 自检已耗墙钟：超过 2× 档位上限且离完成还远时，按隐藏前置升级
+- 每个 checkpoint 自检已耗墙钟：超过 1.5× 档位上限且离完成还远时，按隐藏前置升级
   出口结束为 blocked，在 final report 建议拆分方案（超估熔断）。
 - 自动压缩后从 packet、tracker、Git 和 checkpoints 重建。
 
 Review gate：
 - 每票提交前基于 Base commit 做 Standards + Spec diff review，修复 valid findings。
+- 每票 review 至多 3 次；第 3 次仍 cannot pass，按漂移拆票收线并在 final report
+  附拆分方案。
 - review 需要 coordinator/user judgement 时结束为 blocked。
 
 Lane final report：
@@ -54,6 +56,7 @@ Worktree：
 分支：
 完成 Issues：
 每票实际分钟：<#issue 分钟；#issue 分钟>
+每票审查轮次：<#issue 次数；#issue 次数>
 未领取 dependents：
 Commits：
 验证：

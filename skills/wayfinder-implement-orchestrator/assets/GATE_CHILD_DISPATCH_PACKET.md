@@ -82,7 +82,7 @@ Route 保护：
   缺失即报告 blocked，不发布 tickets。面定义以 `references/ticket-split-coverage.md`
   为准，不在本 packet 复述。
 - 进入 `tickets` 门禁时必须先读 `references/ticket-split-coverage.md`；每张票必须
-  带 S/M/L 估档和五因子分，XL 必须拆分，L 必须带不拆理由。任一票不满足
+  带 S/M/L 估档和五因子分与 `足迹：` 字段，XL 必须拆分，L 必须带不拆理由。任一票不满足
   就报告 blocked，不发布 tickets。
 
 执行规则：
@@ -106,7 +106,7 @@ Final report：
 `spec`/`tickets` 门禁创建的 tracker items：
 - <id/url, readback status, dependency state>
 估档读回：
-- <ticket, S|M|L, 五因子分, L 不拆理由 | n/a>
+- <ticket, S|M|L, 五因子分, 足迹, L 不拆理由 | n/a>
 Duplicate/candidate decision：
 - <exact duplicate | candidate overlap | none, ids/urls, reason>
 阻塞：

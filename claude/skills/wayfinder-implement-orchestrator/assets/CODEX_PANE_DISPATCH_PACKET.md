@@ -33,8 +33,10 @@ Active lane conflicts：
 - 只有 direct dependent 的全部 prerequisites 已满足且不与 active lanes 冲突时才继续领取；
   否则正常结束 lane，把 dependent 留给 coordinator 重算 frontier。
 - 普通实现错误和测试失败在票面内自行修复。
+- 每票双轴 review 至多 3 次；第 3 次仍 cannot pass，停止本 lane 并在 final report
+  建议拆分方案（漂移拆票）。
 - 合同被推翻、需要用户判断、新 local authority 或安全边界失效时只阻塞本 lane。
-- 每个 checkpoint 自检已耗墙钟：超过 2× 档位上限且离完成还远时，停止本 lane 并在
+- 每个 checkpoint 自检已耗墙钟：超过 1.5× 档位上限且离完成还远时，停止本 lane 并在
   final report 建议拆分方案（超估熔断）。
 - 自动压缩后从本 packet、Git 和 checkpoints 重建，不因上下文增长停止。
 
@@ -58,6 +60,7 @@ Lane ID：
 执行通道：codex-pane
 完成 tickets：
 每票实际分钟：<#ticket 分钟；#ticket 分钟>
+每票审查轮次：<#ticket 次数；#ticket 次数>
 未领取 dependents：
 Worktree：
 分支：

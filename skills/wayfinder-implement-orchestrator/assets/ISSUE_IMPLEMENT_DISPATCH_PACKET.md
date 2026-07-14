@@ -53,7 +53,8 @@ Review gate：
 - 如果工具只支持 full-history `fork_thread`，不要指定 `agent_type`；如果无法形成有效
   sub-agent 调用，就在本线程执行同等的 Standards 和 Spec diff review，并在 final
   report 记录 `sub-agent fallback`。
-- 提交前修复有效 findings。如果 review 无法完成，或某个 finding 需要父线程
+- 提交前修复有效 findings。每票 review 至多 3 次；第 3 次仍 cannot pass，按漂移拆票
+  收线并在 final report 附拆分方案。如果 review 无法完成，或某个 finding 需要父线程
   判断，停止并报告 `blocked`。
 
 提交要求：
@@ -70,7 +71,7 @@ Review gate：
 - 隐藏前置升级出口：实现证据暴露票面外活跃消费者、被推翻合同或超出本票安全
   边界的爆炸半径时，停止并在 final report 的「发现的隐藏前置」给出新前置票建议
   （消费者/缺口坐标 + 一句建议票名），保持本票原范围。
-- 每个 checkpoint 自检已耗墙钟：超过 2× 档位上限且离完成还远时，按隐藏前置升级
+- 每个 checkpoint 自检已耗墙钟：超过 1.5× 档位上限且离完成还远时，按隐藏前置升级
   出口停止本 lane，在 final report 建议拆分方案（超估熔断）。
 - lane terminal 时输出完整 final report，并用 `send_message_to_thread` 向 coordinator 发送
   `TERMINAL: <lane-id> completed|blocked <一句原因>`。不发送 routine progress。
@@ -79,6 +80,7 @@ Final report：
 Lane ID：
 Completed issues：
 每票实际分钟：<#issue 分钟；#issue 分钟>
+每票审查轮次：<#issue 次数；#issue 次数>
 Remaining/blocked issues：
 状态：completed | blocked
 线程：
