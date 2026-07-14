@@ -72,10 +72,10 @@ details.
 Every implementation ticket also carries an AI-coding time tier (S/M/L/XL)
 scored from five structural factors: context fan-out, change surface, contract
 novelty, verification distance, and spec gaps. XL tickets must be split before
-publishing, L tickets need a one-line atomicity waiver, lanes self-trip at 2×
-their tier ceiling, and actual wall-clock minutes are appended to the target
-repo's `docs/wayfinder/estimate-log.csv` to calibrate the factor mapping over
-time.
+publishing, L tickets need a one-line atomicity waiver, lanes self-trip at 1.5×
+their tier ceiling or when the two-axis review budget is exhausted, and actual
+wall-clock minutes plus review-round counts are appended to the target repo's
+`docs/wayfinder/estimate-log.csv` to calibrate the factor mapping over time.
 
 The map dashboard is a static HTML shell shipped as a skill asset
 (`assets/map-dashboard-shell.html`), copied once per map to

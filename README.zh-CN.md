@@ -60,8 +60,9 @@ terminal event 缺失、setup 失败或工具超时时才启用 watchdog。
 
 每张 implementation ticket 还带一个 AI 编程估时档位（S/M/L/XL），由五个结构因子打分
 得出（上下文张开面、改动面、合同新旧、验证距离、票面留白）：XL 必拆后才能发布，
-L 需一行原子性不拆理由，lane 超过 2× 档位上限自熔断，实际墙钟分钟追加进目标仓库的
-`docs/wayfinder/estimate-log.csv`，按精益思路持续校准因子映射。
+L 需一行原子性不拆理由，lane 超过 1.5× 档位上限自熔断，双轴 review 超预算即拆票，
+实际墙钟分钟与审查轮次追加进目标仓库的 `docs/wayfinder/estimate-log.csv`，按精益
+思路持续校准因子映射。
 
 票图仪表盘由静态 shell 资产（`assets/map-dashboard-shell.html`）承载，每张 map 只
 复制一次到 `$TMPDIR/wayfinder-<map-slug>.html`；每轮刷新只覆盖写一个
