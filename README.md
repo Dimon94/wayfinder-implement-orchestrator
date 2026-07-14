@@ -77,11 +77,14 @@ their tier ceiling, and actual wall-clock minutes are appended to the target
 repo's `docs/wayfinder/estimate-log.csv` to calibrate the factor mapping over
 time.
 
-At ticket approval and before dispatch freeze, the coordinator renders a
-network-backed single-file HTML map dashboard to `$TMPDIR/wayfinder-<map-slug>.html`
-(status bar, dependency DAG, execution-lane swimlanes, risk cards, six-surface
-census) and opens it for the user; it is rewritten after every frontier
-recompute, so a pinned browser tab tracks the run live. The spec lives in
+The map dashboard is a static HTML shell shipped as a skill asset
+(`assets/map-dashboard-shell.html`), copied once per map to
+`$TMPDIR/wayfinder-<map-slug>.html`; each refresh rewrites only a small
+`wayfinder-<map-slug>-data.js` data layer feeding the status bar, dependency
+DAG, execution-lane swimlanes, risk cards, and six-surface census. Dispatch
+always comes first: the coordinator dispatches the maximal safe batch, then
+refreshes the data layer, opening the page at ticket approval and after each
+dispatch round so a pinned browser tab tracks the run live. The spec lives in
 `references/map-dashboard.md`.
 
 ## Install Codex

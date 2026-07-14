@@ -64,11 +64,11 @@ writes: []
    coordinator、ready frontier、maximal safe batch、active lanes 和 user stops 已记录；每个
    并发 writer 都有独立 worktree/branch 或明确只读范围。
 5. 如果 route 进入 tickets 门禁，或执行期出现修补票、被推翻合同或票面外发现，加载
-   `references/ticket-split-coverage.md`；tickets 审批、dispatch 冻结前与执行期每次重算
-   frontier 后，按 `references/map-dashboard.md` 生成/覆盖写仪表盘，两个必看节点打开
-   给用户。完成标准：变更面普查六面各有票或 map 边界行；每票带估时档位，无 XL 且
-   L 有不拆理由；执行期新 implementation ticket 已回链 map/spec 并挂入
-   implementation graph；被推翻合同已有 supersede note 与重冻结前置。
+   `references/ticket-split-coverage.md`；按 `references/map-dashboard.md` 维护仪表盘：
+   shell 只复制一次，tickets 审批前与每轮派发完成后刷新数据层并打开，执行期
+   terminal fan-in 后只刷新数据层。完成标准：变更面普查六面各有票或 map 边界行；
+   每票带估时档位，无 XL 且 L 有不拆理由；执行期新 implementation ticket 已回链
+   map/spec 并挂入 implementation graph；被推翻合同已有 supersede note 与重冻结前置。
 6. 如果要把 spec、ticket 拆分、review 或 evidence-gathering gate hand-off 给 successor，加载
    `assets/GATE_CHILD_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆填写一个
    ownership brief。
@@ -191,12 +191,12 @@ summary PR/MR。
 3. 如果选择 `needs-spec`，coordinator 运行 `/to-spec`；遇到 seam approval 时直接问用户，
    然后发布 spec，再判断是否需要 tickets。
 4. 如果选择 `needs-implementation-tickets`，用 map/spec 的当前真相源做一次
-   implementation ticket split 并逐票估档（XL 必拆、L 需不拆理由）；生成仪表盘并
-   打开，遇到 ticket split approval 时由当前 owner 问用户；然后按依赖顺序发布
-   implementation tickets。
-5. 如果选择 `direct-implementation-dispatch` 或 tickets 已发布，先给存量票补估档位并
-   在 dispatch 冻结前更新打开仪表盘，再从 ready frontier 建立 execution lanes 并自动并发
-   maximal safe batch；每个 lane 独立 AFK，terminal 即 fan-in、验证、追加
-   `estimate-log.csv`、按拓扑集成并重算 frontier 与覆盖写仪表盘。
+   implementation ticket split 并逐票估档（XL 必拆、L 需不拆理由）；刷新仪表盘
+   数据层并打开，遇到 ticket split approval 时由当前 owner 问用户；然后按依赖顺序
+   发布 implementation tickets。
+5. 如果选择 `direct-implementation-dispatch` 或 tickets 已发布，先给存量票补估档位，
+   从 ready frontier 建立 execution lanes 并自动并发 maximal safe batch，派发完成后
+   刷新仪表盘数据层并打开；每个 lane 独立 AFK，terminal 即 fan-in、验证、追加
+   `estimate-log.csv`、按拓扑集成并重算 frontier 与刷新数据层。
 6. frontier 为空且所有 lanes terminal 后运行 whole-change checks，打开或更新 summary
    PR/MR，然后等待 CI/CD 和 review-agent approval。

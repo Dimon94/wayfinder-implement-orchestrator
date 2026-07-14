@@ -63,10 +63,11 @@ terminal event 缺失、setup 失败或工具超时时才启用 watchdog。
 L 需一行原子性不拆理由，lane 超过 2× 档位上限自熔断，实际墙钟分钟追加进目标仓库的
 `docs/wayfinder/estimate-log.csv`，按精益思路持续校准因子映射。
 
-tickets 审批和 dispatch 冻结前，coordinator 会把票图渲染成联网单文件 HTML 仪表盘
-（`$TMPDIR/wayfinder-<map-slug>.html`：状态条、依赖 DAG、lane 泳道、风险卡、六面
-普查表）并打开给用户；执行期每次重算 frontier 都覆盖写，浏览器常开即可实时看全局。
-规范见 `references/map-dashboard.md`。
+票图仪表盘由静态 shell 资产（`assets/map-dashboard-shell.html`）承载，每张 map 只
+复制一次到 `$TMPDIR/wayfinder-<map-slug>.html`；每轮刷新只覆盖写一个
+`wayfinder-<map-slug>-data.js` 数据层（状态条、依赖 DAG、lane 泳道、风险卡、六面
+普查表）。派发优先：先派 maximal safe batch 再刷数据层；tickets 审批时与每轮派发后
+打开页面，浏览器常开即可实时看全局。规范见 `references/map-dashboard.md`。
 
 ## 安装 Codex 版
 

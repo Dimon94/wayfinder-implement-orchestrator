@@ -45,8 +45,8 @@ work 输出完整 manual packets。
    `references/codex-first-channel.md`。完成标准：ready frontier、maximal safe batch、lane
    坐标、runtime 和 terminal channel 已明确。
 5. 进入 tickets gate 或出现执行期漂移时，加载 `references/ticket-split-coverage.md`。
-   tickets 审批、dispatch 冻结前与执行期每次重算 frontier 后，按
-   `references/map-dashboard.md` 生成/覆盖写仪表盘；两个必看节点打开给用户。
+   按 `references/map-dashboard.md` 维护仪表盘：shell 只复制一次，tickets 审批前与
+   每轮派发完成后刷新数据层并打开，执行期 terminal fan-in 后只刷新数据层。
 6. 按 work 类型加载 packet：gate/review/evidence 用 `GATE_CHILD_DISPATCH_PACKET.md`；
    discovery 用 `wayfinder-frontier-loop.md` 与 `WAYFINDER_TICKET_DISPATCH_PACKET.md`；
    grilling 用 `WAYFINDER_GRILLING_DISPATCH_PACKET.md`；execution lane 按 runtime 用
@@ -108,10 +108,10 @@ authority 或安全边界失效时暂停对应 lane。
 2. 每个 terminal event 到达时只读一次 final report，更新真相源并重算 frontier。
 3. discovery 完成后选择 `wayfinder-complete`、`needs-spec`、
    `needs-implementation-tickets` 或 `direct-implementation-dispatch`。
-4. implementation ready 且每票带估时档位（XL 必拆、L 有不拆理由）、仪表盘已打开给
-   用户后，为 maximal safe batch 建立独立 lanes；当前 lead 可执行一条，
+4. implementation ready 且每票带估时档位（XL 必拆、L 有不拆理由）后，先为 maximal
+   safe batch 建立独立 lanes 并派发，再刷新仪表盘数据层并打开；当前 lead 可执行一条，
    其余按 lane 特征自动选择 `claude-native` 或 `codex-pane`。
 5. 每条 lane AFK 执行、验证、review、checkpoint；blocked 只停本 lane。
-6. terminal fan-in 按拓扑集成、追加 `estimate-log.csv`、覆盖写仪表盘并持续重算
+6. terminal fan-in 按拓扑集成、追加 `estimate-log.csv`、刷新仪表盘数据层并持续重算
    frontier；全部清空后运行 whole-change gates。
 7. 获得 remote publication authority 后 push/open summary PR/MR，等待 CI/CD 与 review verdict。
