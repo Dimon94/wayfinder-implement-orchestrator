@@ -1,6 +1,6 @@
 # Wayfinder Ticket worker pane 派发包
 
-用于派发一个 `/wayfinder` discovery child issue worker pane。不要发送半截 prompt。
+用于派发一个 Wayfinder decision ticket worker pane。不要发送半截 prompt。
 
 ```text
 项目：
@@ -14,10 +14,13 @@ Ticket mode：AFK
 基线提交：
 执行目标：
 Source worktree：
+Research branch：research/<ticket-name> | n/a
 进度快照：<当前门禁；discovery 已完成/运行/阻塞/待派发数量；本 batch；下一门禁或 blocker>
 
 路由：
-- 使用该 map issue 和 ticket issue 调用 /wayfinder。
+- `wayfinder:research`：当前独立 pane 作为 `/research` subagent 执行研究工作流，
+  不再调用 `/wayfinder` 或嵌套派发另一个 research worker。
+- `wayfinder:task`：使用该 map issue 和 ticket issue 调用 `/wayfinder`。
 - 只解决这个 child issue。
 - Wayfinder 默认是 planning；除非 map Notes 明确授权 execution，产出 decisions、
   evidence 和 linked artifacts，不交付 Destination 本身。
@@ -33,6 +36,7 @@ Source worktree：
 - 这个 ticket issue 的 body/comments/labels/assignee/close state
 - Map issue 的 Destination、Decisions-so-far、Not yet specified 和 Out of scope 行
 - Artifact paths：
+- Research context pointer：<ticket comment + research/<name> branch + Markdown path | n/a>
 - 禁止范围：
 
 外部可写目标：
@@ -52,6 +56,12 @@ Source worktree：
 - 不要进入 `/implement`。
 - 如果 ticket 是 `wayfinder:task`，只执行让后续 decision 可判断的前置清障；不要把
   task 扩大成实现 Destination 的交付。
+- 如果 ticket 是 `wayfinder:research`，在开始阅读前建立或复用
+  `research/<ticket-name>` 临时分支；研究结果保存成一份引用一手来源的 Markdown
+  artifact，并把 branch + path 作为 context pointer 写入 ticket。没有 artifact
+  或 context pointer 不得 close ticket。
+- research artifact 需要 repo write 时，必须先获得独立 research worktree；没有可写
+  worktree 就报告 blocked，不得在 source worktree 切换 `research/<ticket-name>`。
 - 如果 ticket 需要人为判断、prototype reaction 或 HITL task input，停止并报告问题。
 - 把 answer 写成 ticket 的 resolution comment，close ticket，并给 map
   Decisions-so-far 追加 title link + gist；不要把完整 answer 或 artifacts 粘贴进 map。
@@ -78,6 +88,7 @@ Tracker 变更：
 -
 Artifacts：
 -
+Research context pointer：<branch + path | n/a>
 新增或解除阻塞的 child issues / Not yet specified / Out of scope：
 -
 Lead 下一步提示：

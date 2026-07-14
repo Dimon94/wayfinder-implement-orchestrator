@@ -13,6 +13,9 @@
 3. AFK discovery 的 `Research` 和可自动执行且只为 decision 清障的 `Task` 进入 ready
    frontier；按 `frontier-lanes.md` 选择 maximal safe batch，用
    `WAYFINDER_TICKET_DISPATCH_PACKET.md` 自动创建并行 workers。
+   `Research` worker 必须走 `/research` subagent 路线并返回 `research/<name>` branch +
+   Markdown context pointer；不得统一改走 `/wayfinder`。已 assigned 的 research ticket 不在
+   frontier 内，先读回 owner 坐标，不重复派发。
    `Prototype`、`Grilling` 和 HITL `Task` 必须有真人参与；没有可参与的用户线程时，
    生成对应 prompt/worker 坐标并停止为 `ask-user`。
 4. coordinator 等 terminal signals，不读 routine progress。

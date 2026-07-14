@@ -13,6 +13,9 @@
 3. 从 ready frontier 选择没有 tracker-write 或 artifact-write 冲突的 maximal safe batch。
    自动派发 AFK `Research` 和只为 decision 清障的 `Task`，使用
    `WAYFINDER_TICKET_DISPATCH_PACKET.md`；不需要用户先开启并发。
+   `Research` pane 必须走 `/research` subagent 路线并返回 `research/<name>` branch +
+   Markdown context pointer；不得统一改走 `/wayfinder`。已 assigned 的 research ticket 不在
+   frontier 内，先读回 owner 坐标，不重复派发。
    `Prototype`、`Grilling` 和 HITL `Task` 必须有真人参与；没有可参与的用户 pane 时，
    生成对应 prompt/worker 坐标并停止为 `ask-user`。
 4. 派发后进入 `child-monitoring.md` 的 terminal fan-in；不读取 routine progress。

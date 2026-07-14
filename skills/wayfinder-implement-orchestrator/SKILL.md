@@ -1,6 +1,6 @@
 ---
 name: wayfinder-implement-orchestrator
-version: 1.4.0
+version: 1.5.0
 description: Coordinate Wayfinder maps through concurrent frontiers, AFK execution lanes, terminal fan-in, and one summary PR/MR.
 disable-model-invocation: true
 skill_class: user-entry
@@ -45,7 +45,10 @@ writes: []
    `Unknown`，每个 open、未阻塞且 unassigned 的 discovery child issue 都已知道。
    如果用户给的是松散想法而不是现有 map issue，先按 `/wayfinder` chart-map 流程命名
    Destination 并 breadth-first 探 fog；如果没有 in-scope fog，说明不需要 map，停止并
-   问用户要直接进入哪种单 session 路径，不要创建空 map。
+   问用户要直接进入哪种单 session 路径，不要创建空 map。map 创建后立即把
+   当轮所有 `wayfinder:research` decision tickets 按 `/research` subagent 路线并发派出，
+   写入 `research/<name>` branch + Markdown context pointer；先 claim/readback，防止随后
+   frontier 重复派发。
    创建或更新 tracker 内容前，同时识别 repo 的 Issue 模板与必填字段；完成
    标准：即将由本链路写入的 Issue 标题、正文、字段文本和评论均已按下方
    `Tracker 中文输出门禁` 准备为中文。
@@ -64,7 +67,8 @@ writes: []
    `references/ticket-split-coverage.md`；tickets 审批、dispatch 冻结前与执行期每次重算
    frontier 后，按 `references/map-dashboard.md` 生成/覆盖写仪表盘，两个必看节点打开
    给用户。完成标准：变更面普查六面各有票或 map 边界行；每票带估时档位，无 XL 且
-   L 有不拆理由；执行期新票已挂图；被推翻合同已有 supersede note 与重冻结前置。
+   L 有不拆理由；执行期新 implementation ticket 已回链 map/spec 并挂入
+   implementation graph；被推翻合同已有 supersede note 与重冻结前置。
 6. 如果要把 spec、ticket 拆分、review 或 evidence-gathering gate hand-off 给 successor，加载
    `assets/GATE_CHILD_DISPATCH_PACKET.md`。完成标准：可以不依赖聊天记忆填写一个
    ownership brief。
@@ -123,6 +127,9 @@ writes: []
   `wayfinder:prototype`、`wayfinder:grilling` 或 `wayfinder:task`，用于发现和决策；
   implementation ticket 是 `/to-tickets` 或人工发布的交付票，用于 `/implement`。不要把
   closed Wayfinder child issues 当成 implementation tickets。
+- 大型 Wayfinder map 清雾后如果要继续交付，默认先 `/to-spec`。只有
+  `gate-state-machine.md` 的「小型化跳过证据」已逐条读回时，才能直接
+  `/to-tickets` 或 `/implement`。
 - Discovery frontier 清空不等于进入 spec。加载 `gate-state-machine.md` 的 route
   classifier，从持久真相源选择一个 route，并且只执行已选 route 的后续门禁。
 - Wayfinder ticket mode 必须显式识别：`Research` 是 AFK，`Prototype` 是 HITL，

@@ -19,7 +19,8 @@ color: purple
 - route classification 可以返回 `wayfinder-complete`；这表示 map 已达 Destination，
   不再派 spec、implementation ticket split 或 implementation workers。
 - Spec synthesis 只能在 lead 明确给出 `needs-spec` route 时运行；如果 route 是
-  `needs-implementation-tickets` 或 `direct-implementation-dispatch`，停止并回报 lead，而不是创建 spec。
+  `needs-implementation-tickets` 或 `direct-implementation-dispatch`，先读回已批准 spec 或
+  `gate-state-machine.md` 的「小型化跳过证据」；缺失就停止并回报 route 无效。
 - Ticket splitting 只能在 lead 明确给出 `needs-implementation-tickets`，或 spec route 已完成且仍需
   implementation tickets 时运行。
 - 如果需要用户批准 seam、scope 或 split，停止并把问题交回 lead。

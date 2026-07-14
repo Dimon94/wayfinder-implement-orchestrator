@@ -10,6 +10,11 @@
 - **Tab**：space 顶部的分页，一类会话的并发容器。第一个 tab 固定为 LEAD tab。
 - **Pane**：tab 内的分屏，一个 worker 会话。设计 pane 对应一个判断问题；执行 pane 对应
   一条 execution lane。
+- **Decision ticket**：Wayfinder map 的 child issue，只用来解决一个决策或为决策
+  清障。resolution 进入 map `Decisions-so-far`；不承载实现交付。
+- **Implementation ticket**：spec 或小型化跳过证据之后的交付票，进入 execution
+  lane 和 implementation dependency graph。它可回链 map，但不是 map child，也不写入
+  `Decisions-so-far`。
 - **LEAD tab**：每个 space 的第一个 tab，主编排者（lead）独占，label 为 `LEAD`。
 - **会话类型**：worker pane 的五种一级分类，决定它归属哪个类型 tab：
   - **G（拷问/规划）**：grilling、spec 拷问、规划类会话。

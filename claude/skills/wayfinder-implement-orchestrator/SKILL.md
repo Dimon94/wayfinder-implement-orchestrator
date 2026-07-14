@@ -35,6 +35,9 @@ work 输出完整 manual packets。
 
 1. 读取 map issue、repo instructions、tracker operations 和引用 artifacts。识别 Destination、
    Decisions-so-far、Not yet specified、Out of scope、真相源、frontier 和 claim 规则。
+   如果本轮刚 chart map，立即把所有 `wayfinder:research` decision tickets 作为
+   `/research` panes 并发派出，先 claim/readback，并要求 `research/<name>` branch +
+   Markdown context pointer，防止随后 frontier 重复派发。
 2. 加载 `references/gate-state-machine.md`，识别当前 gate、route 和通过证据。
 3. 涉及根因、因果、冲突、隐藏假设或不确定影响时，加载
    `references/toc-thinking-processes.md`。
@@ -63,7 +66,7 @@ work 输出完整 manual packets。
 - 每轮自动派发 maximal safe batch。重叠 mutable resources 只让相关 work 串行，不把整个
   frontier 降成串行。
 - lane blocker 只停本 lane；lead 处理 terminal report 后立即重算并继续其他 ready work。
-- workers 不创建 descendants、不集成、不 push、不开 PR/MR。lead 持有 route、用户判断、
+- workers 不创建 descendant panes、不集成、不 push、不开 PR/MR。lead 持有 route、用户判断、
   fan-in、integration 和 remote publication authority。
 
 ## Worktree Policy
@@ -80,7 +83,10 @@ work 输出完整 manual packets。
 
 - 面向用户、worker 和 PR/MR 的自然语言用中文；skill/tool/status/path/hash 保持原样。
 - map 是 index，不是 store。discovery details 留在 child resolution 与 artifacts。
-- discovery frontier 清空后运行 route classifier，不默认进入 spec。
+- discovery frontier 清空后运行 route classifier，不在 frontier loop 内自动跳转。
+- 大型 Wayfinder map 清雾后如果要继续交付，默认先 `/to-spec`。只有
+  `gate-state-machine.md` 的「小型化跳过证据」已逐条读回时，才能直接
+  `/to-tickets` 或 `/implement`。
 - Wayfinder child ticket 是 discovery/decision work；implementation ticket 才进入 `/implement`。
 - 每次 dispatch 或 terminal event 从 tracker/Git 重算 `进度快照`，不沿用聊天记忆。
 - local execution authority 在 worktree 创建、文件修改和本地 commit 前检查。
