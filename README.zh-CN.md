@@ -14,6 +14,10 @@
 -> integration -> summary PR/MR
 ```
 
+对大型 Wayfinder map，交付路由默认 spec-first：先用 `/to-spec` 折叠 linked decision
+tickets，再拆 implementation tickets。只有已存在批准过的 spec/tickets，或 map 已被
+证明小到只需一张自足 implementation ticket，才能跳过 spec。
+
 它是薄编排器，不替代 `/wayfinder`、`/grilling`、`/domain-modeling`、`/prototype`、
 `/research`、`/to-spec`、`/to-tickets`、`/implement` 或 `/code-review`。
 
@@ -50,7 +54,8 @@ Worker 只上报 terminal completion 或 lane-local blocker。Coordinator 对每
 terminal event 缺失、setup 失败或工具超时时才启用 watchdog。
 
 拆票门禁要求对变更面逐面普查（生产侧、消费投影面、旧链对位、旧真相退役、真实首穿、
-规模档六面），执行期通过修补票挂图与合同重冻结控制漂移；细节以 skill 的
+规模档六面），执行期通过 implementation ticket 回链、dependency graph 更新
+与合同重冻结控制漂移；细节以 skill 的
 `references/ticket-split-coverage.md` 为真相源。
 
 每张 implementation ticket 还带一个 AI 编程估时档位（S/M/L/XL），由五个结构因子打分
@@ -58,12 +63,20 @@ terminal event 缺失、setup 失败或工具超时时才启用 watchdog。
 L 需一行原子性不拆理由，lane 超过 2× 档位上限自熔断，实际墙钟分钟追加进目标仓库的
 `docs/wayfinder/estimate-log.csv`，按精益思路持续校准因子映射。
 
-tickets 审批和 dispatch 冻结前，coordinator 会把票图渲染成自包含 HTML 仪表盘
+tickets 审批和 dispatch 冻结前，coordinator 会把票图渲染成联网单文件 HTML 仪表盘
 （`$TMPDIR/wayfinder-<map-slug>.html`：状态条、依赖 DAG、lane 泳道、风险卡、六面
 普查表）并打开给用户；执行期每次重算 frontier 都覆盖写，浏览器常开即可实时看全局。
 规范见 `references/map-dashboard.md`。
 
 ## 安装 Codex 版
+
+先安装 Matt Pocock skills（Codex 目前仍走 skills.sh），并勾选上方列出的强依赖：
+
+```bash
+npx skills@latest add mattpocock/skills
+```
+
+然后安装本 skill：
 
 ```bash
 git clone https://github.com/Dimon94/wayfinder-implement-orchestrator.git
@@ -86,6 +99,15 @@ ${CODEX_HOME:-~/.codex}/skills/wayfinder-implement-orchestrator
 ```
 
 ## 安装 Claude 版
+
+先安装 Matt Pocock 的原生 Claude Code plugin：
+
+```bash
+claude plugin marketplace add mattpocock/skills
+claude plugin install mattpocock-skills@mattpocock
+```
+
+再安装本 skill 和 helper agents：
 
 ```bash
 ./scripts/install.sh --target claude
@@ -113,8 +135,9 @@ ${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
 ```text
 使用 $wayfinder-implement-orchestrator 处理 <wayfinder map issue URL>。
 先跑必要 Wayfinder discovery tickets；每轮都重算 ready frontier，并自动派发 maximal safe
-batch。discovery 完成后判断是停止、需要 spec、只需要拆一次 implementation tickets，还是
-用 AFK execution lanes 执行已有 tickets。lane 内串行、无冲突 lanes 默认并发，只做
+batch。discovery 完成后如 Destination 已满足就停止；否则默认先合成 spec，只有
+小型化跳过证据成立或已有批准 tickets 才直接拆票/执行。lane 内串行、无冲突
+lanes 默认并发，只做
 terminal fan-in；最后汇总到一个 summary PR/MR。
 ```
 
@@ -134,6 +157,7 @@ Claude-native 或 Codex-pane runtime。安全 lanes 默认并发，只收敛 ter
 ```text
 skill-bundle.json
 skills/wayfinder-implement-orchestrator/SKILL.md
+skills/wayfinder-implement-orchestrator/agents/openai.yaml
 skills/wayfinder-implement-orchestrator/references/*.md
 skills/wayfinder-implement-orchestrator/assets/*.md
 claude/skills/wayfinder-implement-orchestrator/SKILL.md
@@ -155,9 +179,11 @@ python3 scripts/validate.py
 校验脚本会检查：
 
 - Codex 和 Claude `SKILL.md` frontmatter
+- Codex `agents/openai.yaml` 的用户显式调用策略
 - `references/` 和 `assets/` 引用路径
 - Claude helper agent definitions
 - bundle manifest 一致性
+- 大型 map 的 spec-first 路由、research subagent context pointer 和 tickets 估档门禁
 - 共享 frontier、lane、terminal fan-in、pane placement 和 authority 不变量
 - 不残留显式并发、全局 queue、idle wait 或固定轮询旧规则
 - 没有复制 cc-dev 的 PDCA 状态机

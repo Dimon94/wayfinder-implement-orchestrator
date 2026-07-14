@@ -14,6 +14,11 @@ multi-session delivery flow:
 -> integration -> summary PR/MR
 ```
 
+For a large Wayfinder map, the delivery route is spec-first: `/to-spec` collapses
+the linked decision tickets before ticket splitting. Direct ticketing or
+implementation is reserved for an already approved spec/ticket set, or for a
+map proven small enough to fit one self-contained implementation ticket.
+
 It is a thin orchestrator. It does not replace `/wayfinder`, `/grilling`,
 `/domain-modeling`, `/prototype`, `/research`, `/to-spec`, `/to-tickets`, `/implement`, or
 `/code-review`.
@@ -59,7 +64,8 @@ setup failures, and tool timeouts.
 The ticket-split gate requires a change-surface census across six surfaces
 (production side, consumer projections, legacy-chain counterparts, legacy-truth
 retirement, real first pass-through, scale tier), and execution-time drift is
-controlled through patch-ticket map anchoring and contract re-freezing; the
+controlled through implementation-ticket backlinks, dependency-graph updates,
+and contract re-freezing; the
 skill's `references/ticket-split-coverage.md` is the source of truth for the
 details.
 
@@ -72,13 +78,22 @@ repo's `docs/wayfinder/estimate-log.csv` to calibrate the factor mapping over
 time.
 
 At ticket approval and before dispatch freeze, the coordinator renders a
-self-contained HTML map dashboard to `$TMPDIR/wayfinder-<map-slug>.html`
+network-backed single-file HTML map dashboard to `$TMPDIR/wayfinder-<map-slug>.html`
 (status bar, dependency DAG, execution-lane swimlanes, risk cards, six-surface
 census) and opens it for the user; it is rewritten after every frontier
 recompute, so a pinned browser tab tracks the run live. The spec lives in
 `references/map-dashboard.md`.
 
 ## Install Codex
+
+Install the Matt Pocock skills first (Codex still uses skills.sh), selecting
+every dependency listed above:
+
+```bash
+npx skills@latest add mattpocock/skills
+```
+
+Then install this skill:
 
 ```bash
 git clone https://github.com/Dimon94/wayfinder-implement-orchestrator.git
@@ -102,6 +117,15 @@ the dependency check:
 ```
 
 ## Install Claude
+
+Install Matt Pocock's native Claude Code plugin first:
+
+```bash
+claude plugin marketplace add mattpocock/skills
+claude plugin install mattpocock-skills@mattpocock
+```
+
+Then install this skill and its helper agents:
 
 ```bash
 ./scripts/install.sh --target claude
@@ -131,8 +155,9 @@ Invoke the Codex version explicitly:
 Use $wayfinder-implement-orchestrator with <wayfinder map issue URL>.
 Run the necessary Wayfinder discovery tickets first. At every round, recompute
 the ready frontier and automatically dispatch its maximal safe batch. After
-discovery, decide whether to stop, synthesize a spec, split implementation
-tickets, or execute existing tickets in AFK execution lanes. Keep each lane
+discovery, stop if the destination is met; otherwise synthesize a spec by
+default, unless the small-map bypass is proven or approved tickets already
+exist. Then split or execute tickets in AFK execution lanes. Keep each lane
 serial and isolated, run safe lanes concurrently, use terminal-only fan-in, and
 finish with one summary PR/MR.
 ```
@@ -154,6 +179,7 @@ This repo uses a dual-surface skill bundle format:
 ```text
 skill-bundle.json
 skills/wayfinder-implement-orchestrator/SKILL.md
+skills/wayfinder-implement-orchestrator/agents/openai.yaml
 skills/wayfinder-implement-orchestrator/references/*.md
 skills/wayfinder-implement-orchestrator/assets/*.md
 claude/skills/wayfinder-implement-orchestrator/SKILL.md
@@ -176,9 +202,12 @@ python3 scripts/validate.py
 The validator checks:
 
 - Codex and Claude `SKILL.md` frontmatter
+- the Codex `agents/openai.yaml` explicit user-invocation policy
 - referenced `references/` and `assets/` paths
 - Claude helper agent definitions
 - bundle manifest consistency
+- spec-first routing for large maps, research subagent context pointers, and
+  ticket estimation gates
 - shared frontier, lane, terminal fan-in, placement, and authority invariants
 - no legacy opt-in concurrency, global-queue, idle-wait, or fixed-polling rules
 - no copied cc-dev PDCA state machine

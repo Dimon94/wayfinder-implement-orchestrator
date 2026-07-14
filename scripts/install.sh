@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILL_NAME="wayfinder-implement-orchestrator"
 CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+AGENTS_HOME_DIR="${AGENTS_HOME:-$HOME/.agents}"
 CLAUDE_HOME_DIR="${CLAUDE_HOME:-$HOME/.claude}"
 SKIP_DEPS=0
 TARGET="codex"
@@ -20,6 +21,10 @@ Installs $SKILL_NAME to one or both (all targets symlink to this checkout):
 
 Claude helper agents install to (per-file symlinks):
   \${CLAUDE_HOME:-~/.claude}/agents/wayfinder-*.md
+
+Codex dependency discovery checks both:
+  \${CODEX_HOME:-~/.codex}/skills
+  \${AGENTS_HOME:-~/.agents}/skills
 EOF
 }
 
@@ -110,16 +115,29 @@ install_claude() {
   echo "Symlinked Claude wayfinder agents into $agents_dest"
 }
 
+has_codex_dependency() {
+  local dep="$1"
+  local root
+  for root in "$CODEX_HOME_DIR/skills" "$AGENTS_HOME_DIR/skills"; do
+    [ -f "$root/$dep/SKILL.md" ] && return 0
+  done
+  return 1
+}
+
 if [ "$SKIP_DEPS" -eq 0 ] && { [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; }; then
   missing=()
   for dep in ask-matt wayfinder grilling domain-modeling prototype research to-spec to-tickets implement code-review writing-great-skills; do
-    [ -f "$CODEX_HOME_DIR/skills/$dep/SKILL.md" ] || missing+=("$dep")
+    has_codex_dependency "$dep" || missing+=("$dep")
   done
 
   if [ "${#missing[@]}" -gt 0 ]; then
-    echo "Missing Matt Pocock skill dependencies in $CODEX_HOME_DIR/skills:" >&2
+    echo "Missing Matt Pocock skill dependencies:" >&2
     printf '  - %s\n' "${missing[@]}" >&2
-    echo "Install mattpocock-skills first, or rerun with --skip-deps-check." >&2
+    echo "Checked:" >&2
+    echo "  - $CODEX_HOME_DIR/skills" >&2
+    echo "  - $AGENTS_HOME_DIR/skills" >&2
+    echo "Install them with: npx skills@latest add mattpocock/skills" >&2
+    echo "Or rerun with --skip-deps-check only if another harness supplies them." >&2
     exit 1
   fi
 fi
