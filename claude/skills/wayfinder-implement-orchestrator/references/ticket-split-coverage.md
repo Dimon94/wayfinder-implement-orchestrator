@@ -60,13 +60,17 @@ lane packet 携带当前票的档位上限。lane 在每个 checkpoint 自检已
 
 ## 执行期漂移控制
 
-### 修补票挂图
+### 实现修补票回链
 
-执行期新建的、服务于本图 Destination 的任何票（修复、前置、追加），创建时带
-map child label，body 首行写 map 坐标。每个 lane terminal 后由 coordinator 重索引 map 并
-重算 ready frontier。closed 票给 Decisions-so-far 追加一行，已知
-未成票缺口写进 Not yet specified。map 写「（无）」而 tracker 有 open in-scope 票即为
-脱图，先归位再执行下一张。
+执行期新建的修复、前置或追加票仍是 implementation ticket，不是 Wayfinder
+decision ticket。创建时在 body 首行回链 map 坐标和当前 spec/implementation parent，
+并挂入 implementation dependency graph；不得添加 Wayfinder child label，也不得把完成结果
+写入 map `Decisions-so-far`。
+
+每个 lane terminal 后由 `collect` 门禁立即重算 implementation graph 和仪表盘。只有
+实现证据暴露出新的 product/architecture/risk decision 时，才在 map 下创建或重开
+Wayfinder decision ticket，把受影响 lane 暂停到该 decision resolved；该 decision terminal 后才
+重索引 map。map 只索引 decisions，implementation graph 只索引交付票。
 
 ### 合同重冻结
 

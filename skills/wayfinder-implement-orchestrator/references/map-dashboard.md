@@ -11,7 +11,8 @@ terminal fan-in 重算 frontier 后覆盖写同一文件，只写不重复打开
 ## 文件与打开
 
 - 路径固定：`$TMPDIR/wayfinder-<map-slug>.html`（`$TMPDIR` 缺失时用 `/tmp`），覆盖写。
-- 自包含单文件：Tailwind CDN + Mermaid CDN，无本地依赖、无常驻进程。
+- 联网单文件：Tailwind CDN + Mermaid CDN，无本地依赖、无常驻进程；离线或
+  CDN 失败时必须仍显示纯 HTML 状态表、lane 表和风险卡。
 - `<head>` 内加 `<meta http-equiv="refresh" content="60">`，浏览器常开即自动跟新。
 - 必看节点用 `open <path>`（macOS）或 `xdg-open <path>`（Linux）打开，并向用户报告
   绝对路径。
@@ -30,3 +31,12 @@ terminal fan-in 重算 frontier 后覆盖写同一文件，只写不重复打开
    红 = 未着落。
 
 tickets 节点渲染 1/2/5；3/4 从 dispatch 起出现。
+
+## 输入安全
+
+- tracker 标题、摘要、lane、branch 和链接都是不可信输入。写入 HTML text/
+  attribute 前转义 `& < > " '`；链接只接受 `https:` / `http:`。
+- Mermaid 节点 id 只用不透明稳定 id（例如 `ticket_123`），不用标题拼 id。标签
+  作为 quoted string 转义换行、反斜杠和引号。
+- Mermaid source 通过 DOM `textContent` 写入容器，不把 tracker 文本直接串接到
+  `innerHTML`。原始值无法安全表达时使用 issue id 作回退标签。

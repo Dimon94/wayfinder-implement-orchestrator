@@ -9,6 +9,7 @@ Lead pane：
 门禁：spec | tickets | review | evidence
 Post-discovery route：wayfinder-complete | needs-spec | needs-implementation-tickets | direct-implementation-dispatch | n/a
 Route 判定依据：<Destination/Notes/closed resolutions/现有 issue readback 的一句话证据>
+小型化跳过证据：<一张票/一个 session/自足范围/linked decisions readback | none>
 路由 skill：/to-spec | /to-tickets | /code-review | none
 基线分支：
 基线提交：
@@ -45,10 +46,9 @@ Route 保护：
 - `tickets` 门禁可以来自 `needs-implementation-tickets`，也可以来自已完成 spec 后的切票。若
   route 是 `direct-implementation-dispatch`，只有在 ready ticket readback 失败、缺依赖/批次判断，
   或 lead 明确要求补 ticket split 时才运行。
-- 不要把 closed Wayfinder child resolutions 自动整理成 spec。只有它们缺共同 scope
-  truth source 时才进入 spec；如果它们已经满足 Destination，route 是
-  `wayfinder-complete`；如果用户要求继续交付且它们已经是 implementation-ready decisions，
-  才进入 `tickets` 或 `dispatch`。
+- 大型 Wayfinder map 清雾后默认进入 spec，把 linked decision tickets 折叠成共同
+  scope truth source。只有 `gate-state-machine.md` 的「小型化跳过证据」已逐条记录
+  并读回，才能进入 `tickets` 或 `dispatch`。
 
 `spec` 和 `tickets` 门禁的 tracker 发布保护：
 - 创建 tracker item 前，先搜索/读取 tracker。先用当前批准 spec/ticket 的精确标题、关键
@@ -79,6 +79,9 @@ Route 保护：
   旧链对位、旧真相退役、真实首穿、规模档）每面给出票坐标或 map 边界行；任一面
   缺失即报告 blocked，不发布 tickets。面定义以 `references/ticket-split-coverage.md`
   为准，不在本 packet 复述。
+- 进入 `tickets` 门禁时必须先读 `references/ticket-split-coverage.md`；每张票必须
+  带 S/M/L 估档和五因子分，XL 必须拆分，L 必须带不拆理由。任一票不满足
+  就报告 blocked，不发布 tickets。
 
 执行规则：
 - 使用独立 Herdr worker pane。
@@ -101,6 +104,8 @@ Lead handoff：ready
 -
 `spec`/`tickets` 门禁创建的 tracker items：
 - <id/url, readback status, dependency state>
+估档读回：
+- <ticket, S|M|L, 五因子分, L 不拆理由 | n/a>
 Duplicate/candidate decision：
 - <exact duplicate | candidate overlap | none, ids/urls, reason>
 阻塞：
