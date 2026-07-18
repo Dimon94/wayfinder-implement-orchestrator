@@ -104,7 +104,7 @@ herdr pane send-text "$default_pane" '<filled-dispatch-packet>'
 
 每个 worker 必须走完下面四步再开始下一个 worker，不要批量建完再统一发 prompt。
 `<worker 启动命令>` 按执行通道取值：claude pane 用 `claude --dangerously-skip-permissions`，
-codex pane 用 `codex -s workspace-write -a never`（见 `codex-first-channel.md`）。
+codex pane 用 `codex -s danger-full-access -a never`（见 `codex-first-channel.md`）。
 
 claude pane 的模型按 tab 类型追加：
 

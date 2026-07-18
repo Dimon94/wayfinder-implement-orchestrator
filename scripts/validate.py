@@ -105,11 +105,11 @@ def check_no_runtime_leaks() -> None:
     ).read_text()
     for required in (
         "herdr agent start",
-        "codex -s workspace-write -a never",
+        "codex -s danger-full-access -a never",
         "codex-pane",
         "claude-native",
         "herdr wait agent-status",
-        "永不跳过",
+        "强制",
     ):
         if required not in claude_channel:
             fail(f"Claude codex channel missing herdr guard: {required}")

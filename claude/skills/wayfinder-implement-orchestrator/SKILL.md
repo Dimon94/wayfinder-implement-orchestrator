@@ -5,31 +5,29 @@ description: Orchestrate tracker-backed Wayfinder maps through concurrent design
 
 # Wayfinder Implement Orchestrator for Claude
 
-只有当用户用 tracker 上的 wayfinder map issue、需要变成 shared map 的松散想法，或已批准的
-spec/tickets 集合调用时，才使用本 skill。它只负责编排链路；不替代 `/wayfinder`、
-`/to-spec`、`/to-tickets` 或 `/implement`。
+用 tracker 上的 wayfinder map issue、shared map 想法或已批准 spec/tickets 集合调用。编排链路专用；
+`/wayfinder`、`/to-spec`、`/to-tickets`、`/implement` 各自负责其阶段。
 
 ## Execution Model
 
 每轮都从持久真相源重算 `ready frontier`，选择没有 dependency 或 mutable-resource 冲突的
-`maximal safe batch`。安全并发是默认行为，不需要用户先开启。
+`maximal safe batch`。安全并发是默认行为。
 
 - **Design fan-out**：一个判断问题一个 Herdr pane；AFK research/evidence/task 自动并发，
   HITL blocker 只暂停对应 pane。
 - **AFK execution lanes**：一个 lane = 一个 AFK owner + 一个 worktree/branch + 一条可串行
   验证的 ticket 链。当前 Claude lead 可亲自执行一条 lane，其余 lanes 自动派发。
-- **Terminal fan-in**：lead 只消费 `done` / `blocked` terminal event；每个 final report 只读
-  一次，验证后按依赖拓扑集成，并立刻重算 frontier。没有固定节奏轮询。
+- **Terminal fan-in**：lead 消费 `done` / `blocked` terminal event；每个 final report 读
+  一次，验证后按依赖拓扑集成，立刻重算 frontier。轮询不固定节奏，event-driven 唤醒。
 
 每条 execution lane 自动选择 runtime：自包含、已冻结、无需 MCP/密钥/HITL/remote write 的
 hands-on work 用 `codex-pane`；需要 Claude 会话工具、tracker write、用户判断或不可逆操作的
-work 用 `claude-native`。runtime 是 lane-local routing，不需要逐 lane 征求用户同意。
+work 用 `claude-native`。runtime 是 lane-local routing。
 
-Claude Agent Team 只作为 pane-local accelerator，不拥有全局 lifecycle，不更新 map/spec/
-tickets/PR/MR。Codex 只允许 Herdr pane 派发，禁止在 Claude Bash 里手搓 `codex exec`。
+Claude Agent Team 作为 pane-local accelerator，lifecycle 与 map/spec/tickets/PR/MR 更新归 lead。
+Codex 通过 Herdr pane 派发（`codex exec` 在 Claude Bash 中已被取代）。
 
-如果 `HERDR_ENV=1` 不存在，停止创建 workers，当前 lead 可继续一条安全 lane，并为其余 ready
-work 输出完整 manual packets。
+absent `HERDR_ENV=1` 时：lead 执行一条安全 lane，为其余 ready work 输出 manual packets。
 
 ## Startup Gates
 
@@ -57,50 +55,47 @@ work 输出完整 manual packets。
 
 ## Dispatch Rules
 
-- 创建 pane 前确认 `HERDR_ENV=1`；否则不伪造并发。
+- 创建 pane 需要 `HERDR_ENV=1`；absent 时当前 lead 执行一条安全 lane，为其余 ready work 输出 manual packets。
 - design pane label 为 `#<issue> <摘要>`；execution pane label 为
   `L<lane>(#<issue>) <摘要>`。创建命令显式带目标 workspace/tab 和 `--no-focus`。
 - Claude pane 用 `claude --dangerously-skip-permissions`；Codex pane 用
-  `codex -s workspace-write -a never`。sandbox escalation 必须由 lead 单独授权。
+  `codex -s danger-full-access -a never`（需完整开发环境与网络访问）。
 - create、send-text、pane rename、tab rename 是一个原子组；完成后再创建下一 pane。
-- 每轮自动派发 maximal safe batch。重叠 mutable resources 只让相关 work 串行，不把整个
-  frontier 降成串行。
+- 每轮自动派发 maximal safe batch。重叠 mutable resources 串行相关 work，其他 work 保持并发。
 - lane blocker 只停本 lane；lead 处理 terminal report 后立即重算并继续其他 ready work。
-- workers 不创建 descendant panes、不集成、不 push、不开 PR/MR。lead 持有 route、用户判断、
-  fan-in、integration 和 remote publication authority。
+- workers 职责：执行 lane packet，生成 terminal report。lead 职责：route、用户判断、
+  fan-in、integration、remote publication。
 
 ## Worktree Policy
 
 - 每个 execution lane 使用独立 worktree/branch；共享 worktree 同时只允许一个 writer。
 - 创建前记录 source worktree branch。用
-  `git worktree add -b <lane-branch> <lane-path> <base-ref>` 创建，不切换 source worktree。
+  `git worktree add -b <lane-branch> <lane-path> <base-ref>` 创建，source worktree 保持原样。
 - lane path/branch 写入 packet 和坐标记录。推荐 branch `wf/<map-slug>-l<lane>`，path
   `<repo-parent>/<repo>-wf-<map-slug>-l<lane>`。
-- design/read-only workers 默认不建 worktree；需要 repo writes 时也遵守一 writer 一 worktree。
-- lane terminal 后先验证 clean state 和 commits；集成完成且不再复用时安全移除 worktree。
+- design/read-only workers 默认不建 worktree；repo writes 需要时遵守一 writer 一 worktree。
+- lane terminal 后先验证 clean state 和 commits；集成完成且不再复用时移除 worktree。
 
 ## Truth and Authority Rules
 
 - 面向用户、worker 和 PR/MR 的自然语言用中文；skill/tool/status/path/hash 保持原样。
-- map 是 index，不是 store。discovery details 留在 child resolution 与 artifacts。
-- discovery frontier 清空后运行 route classifier，不在 frontier loop 内自动跳转。
-- 大型 Wayfinder map 清雾后如果要继续交付，默认先 `/to-spec`。只有
-  `gate-state-machine.md` 的「小型化跳过证据」已逐条读回时，才能直接
-  `/to-tickets` 或 `/implement`。
+- map 是 index，discovery details 留在 child resolution 与 artifacts。
+- discovery frontier 清空后运行 route classifier。
+- 大型 Wayfinder map 清雾后继续交付默认先 `/to-spec`。直接 `/to-tickets` 或 `/implement`
+  需要 `gate-state-machine.md` 小型化跳过证据逐条读回。
 - Wayfinder child ticket 是 discovery/decision work；implementation ticket 才进入 `/implement`。
-- 每次 dispatch 或 terminal event 从 tracker/Git 重算 `进度快照`，不沿用聊天记忆。
+- 每次 dispatch 或 terminal event 从 tracker/Git 重算进度快照，source of truth 是外部系统。
 - local execution authority 在 worktree 创建、文件修改和本地 commit 前检查。
-- remote publication authority 只在 push、open/update PR/MR 或 remote comment 前检查；缺失
-  remote authority 不阻塞本地 lanes。
-- HITL ticket 只能由真人反馈 resolve。用户判断只阻塞相关 item，不冻结其他 safe work。
-- Summary PR/MR 只有 CI/CD 通过且 remote review Agent 明确 can pass 才完成。
-- 不调用或复制 cc-dev workflow；本 skill 有自己的 gates。
+- remote publication authority 在 push、open/update PR/MR 或 remote comment 前检查；absent 时
+  本地 lanes 继续执行。
+- HITL ticket 由真人反馈 resolve。用户判断只阻塞相关 item，safe work 继续。
+- Summary PR/MR 完成标准：CI/CD 通过且 remote review Agent 明确 can pass。
+- 本 skill 有独立 gates，与 cc-dev workflow 隔离。
 
 ## AFK Continuation
 
 Claude/Codex 自动压缩是正常续航机制。lane 从 packet、tracker、Git、checks 和 checkpoint
-commits 重建，不因上下文增长 hand-off。只有合同被证据推翻、需要用户判断、缺少 local
-authority 或安全边界失效时暂停对应 lane。
+commits 重建。暂停条件：合同被证据推翻、需要用户判断、缺少 local authority、安全边界失效。
 
 ## Minimal Run
 

@@ -22,37 +22,36 @@ publication 或真实 human judgement 才停下。
 
 - 按 `herdr-pane-placement.md` 用 `herdr agent start` 创建一个 X pane，label
   `L<id>(#<issue>) <摘要>`，cwd 指向 lane 独立 worktree。
-- 启动 `codex -s workspace-write -a never`。需要突破 sandbox 时停止，由 coordinator 决定，
-  不默认升级。
+- 启动 `codex -s danger-full-access -a never`。Codex 需要访问完整开发环境
+  （环境配置、测试工具、依赖安装、git 提交、网络请求）才能完成实现与验证。
 - 用 `CODEX_PANE_DISPATCH_PACKET.md` 投递完整 lane packet；`send-text` 后提交回车，并确认
   agent 已 working。
-- pane 可在 lane 内连续执行 direct dependents，但只有 prerequisites 满足且不与 active lanes
-  冲突时才能领取。
-- 每票创建本地 checkpoint commit；不 push、不切换 branch、不开 PR/MR、不写 tracker。
-- 禁止在任何 Claude pane 的 Bash 中用 `codex exec` 兜底。
+- pane 可在 lane 内连续执行 direct dependents，prerequisites 满足且无 active lanes
+  冲突时领取。
+- 每票创建本地 checkpoint commit。lead 持有 push、branch switch、PR/MR 开启、tracker 写权限。
+- Claude pane Bash 中的 `codex exec` 已被 Herdr pane 渠道完全取代。
 
 ## Claude-native Lane Contract
 
 - 当前 lead 自有 lane 或独立 Claude X pane 都使用 `ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。
-- lane 可使用 Claude 会话工具完成 tracker checkpoint，但 remote publication 仍归 coordinator。
-- 独立 pane 用 `claude --dangerously-skip-permissions`；不创建 sibling workers。
+- lane 可使用 Claude 会话工具完成 tracker checkpoint。lead 持有 remote publication 权限。
+- 独立 pane 用 `claude --dangerously-skip-permissions`；workers 使用 pane-local tools。
 
 ## Terminal Wait
 
 - Claude pane 完整 final report 后发 WAKE。
 - Codex pane 用
   `herdr wait agent-status <pane_id> --status done --timeout <ms>` 等 terminal event。
-- 等待期间不读 working progress。terminal 后只读一次末尾 final report，并进入
+- 等待期间仅读 terminal event。terminal 后只读一次末尾 final report，并进入
   `child-monitoring.md` 的 fan-in。
-- Herdr integration/CLI 不可用只阻塞该 pane setup；coordinator 可把 lane 改派
-  `claude-native`，其他 lanes 不受影响。
+- Herdr integration/CLI 不可用时该 pane setup 被阻塞；coordinator 可把 lane 改派
+  `claude-native`，其他 lanes 正常执行。
 
 ## Review and Integration
 
-lane owner 完成 focused review，但不做自己的最终 integration review；review gate 永不跳过。
-coordinator 验证每个
-checkpoint commit、复跑必要 checks，按 topology 集成。valid finding 可回原 lane 一次；再失败
-则拆成新 ready work。push、PR/MR 和 remote comments 永远留在 remote publication gate。
+lane owner 完成 focused review。coordinator 执行最终 integration review（review gate 强制）；
+验证每个 checkpoint commit、复跑必要 checks，按 topology 集成。valid finding 可回原 lane 一次；
+再失败则拆成新 ready work。lead 持有 push、PR/MR 和 remote comments 权限（remote publication gate）。
 
 ## Readback
 
