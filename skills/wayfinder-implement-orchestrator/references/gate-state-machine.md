@@ -122,8 +122,8 @@ Not yet specified 删除对应 fog；如果某个 ticket 或 fog 已越过 Desti
 
 每轮重算 ready frontier，并按 `frontier-lanes.md` 选择 maximal safe batch。彼此在 files、
 migrations、locks、external resources 和 release ordering 上无冲突的 tickets 自动进入不同
-lanes；相关 tickets 在同一 lane 串行。当前 task 可以拥有一条 lane，其余 lanes 使用 fresh
-children。某条 lane blocked 时记录 blocker、终止该 lane 并继续其他 ready lanes。
+lanes；相关 tickets 在同一 lane 串行。所有 lanes 使用 fresh children；coordinator 不亲自
+执行任何 lane。某条 lane blocked 时记录 blocker、终止该 lane 并继续其他 ready lanes。
 
 ## Tracker 去重
 

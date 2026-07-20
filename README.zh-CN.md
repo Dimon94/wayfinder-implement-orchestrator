@@ -192,8 +192,8 @@ python3 scripts/validate.py
 
 ## 边界
 
-Codex 版用原生 tasks 自动派发相互独立的设计 workers 和 execution lanes。当前 task 可以
-负责一条 lane，其他安全 lanes 在 child tasks 中并发运行。每条 lane 内部串行；某条 lane
+Codex 版用原生 tasks 自动派发相互独立的设计 workers 和 execution lanes。所有 lanes 在
+child tasks 中并发运行；coordinator 不亲自执行任何 lane。每条 lane 内部串行；某条 lane
 blocked 不会停止无关的 ready work。
 
 Claude 版预期在 Herdr 内运行，并按 lane 自动选择 runtime：需要 Claude/MCP 交互的工作走

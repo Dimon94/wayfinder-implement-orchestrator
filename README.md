@@ -218,8 +218,8 @@ The validator checks:
 ## Boundary
 
 The Codex version uses native tasks to dispatch independent design workers and
-execution lanes automatically. The current task may own one lane while other
-safe lanes run in child tasks. Each lane is serial internally; lane blockers do
+execution lanes automatically. All lanes run in child tasks; the coordinator
+does not execute any lane itself. Each lane is serial internally; lane blockers do
 not stop unrelated ready work.
 
 The Claude version expects to run inside Herdr. It automatically chooses a

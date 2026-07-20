@@ -39,8 +39,8 @@
 - child 报告 `ask-user`、`blocked` 或 `Unknown`；
 - 两个 tasks 编辑了同一个 child issue，或留下冲突 tracker state。
 
-对非判断类 tickets，Codex thread tools 可用时自动并发派发；不可用时当前 task 执行一个
-work item，并输出其余 ready work 的 durable briefs。
+对非判断类 tickets，Codex thread tools 可用时自动并发派发；不可用时输出所有 ready work
+的 durable briefs，coordinator 不亲自执行任何 work item。
 
 coordinator 负责 frontier、fan-in 和 route classifier；workers 不进入 `/to-spec`、
 `/to-tickets` 或 `/implement`。
