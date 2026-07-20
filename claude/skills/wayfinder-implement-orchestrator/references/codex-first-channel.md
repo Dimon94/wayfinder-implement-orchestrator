@@ -12,8 +12,8 @@
 - 可在独立 worktree/branch 内完成并留下 checkpoint commits。
 
 使用 `claude-native`，当 lane 需要 Claude 会话工具、tracker coordination、用户判断、密钥、
-不可逆操作，或 packet 仍需动态解释。当前 lead 可直接拥有一条 claude-native lane；更多
-claude-native lanes 用独立 Herdr panes。
+不可逆操作，或 packet 仍需动态解释。所有 claude-native lanes 用独立 Herdr panes；
+coordinator 不亲自执行任何 lane。
 
 runtime routing 自动发生，不询问用户。只有 sandbox escalation、新 local authority、remote
 publication 或真实 human judgement 才停下。
@@ -33,7 +33,7 @@ publication 或真实 human judgement 才停下。
 
 ## Claude-native Lane Contract
 
-- 当前 lead 自有 lane 或独立 Claude X pane 都使用 `ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。
+- 独立 Claude X pane 使用 `ISSUE_IMPLEMENT_DISPATCH_PACKET.md`。
 - lane 可使用 Claude 会话工具完成 tracker checkpoint。lead 持有 remote publication 权限。
 - 独立 pane 用 `claude --dangerously-skip-permissions`；workers 使用 pane-local tools。
 

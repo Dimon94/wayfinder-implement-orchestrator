@@ -79,10 +79,10 @@ writes: []
 8. 如果下一个 discovery child issue 是 `wayfinder:grilling` 或需要实时判断，加载
    `assets/WAYFINDER_GRILLING_DISPATCH_PACKET.md`。完成标准：一个 copy-paste
    prompt 能让用户在 fresh task 跑完整拷问会话，并由该 task 接棒后续 map 编排。
-9. 进入 implementation 时，从 ready frontier 自动启动 maximal safe batch：当前 task 可执行
-   一条 lane，其余 lanes 加载 `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md` 创建 fresh children。
-   完成标准：每个 ready、无冲突 ticket 已进入 active lane；被串行的 ticket 有 dependency
-   或 mutable-resource 证据。
+9. 进入 implementation 时，从 ready frontier 自动启动 maximal safe batch：所有 lanes 加载
+   `assets/ISSUE_IMPLEMENT_DISPATCH_PACKET.md` 创建 fresh children；coordinator 不亲自执行
+   任何 lane。完成标准：每个 ready、无冲突 ticket 已进入 active lane；被串行的 ticket 有
+   dependency 或 mutable-resource 证据。
 10. workers 运行时加载 `references/child-monitoring.md` 做 terminal fan-in。完成标准：每个
    worker 通过 startup probe、有 terminal signal 通道和 `Source owner projectId`；coordinator
    不读 routine progress，terminal 后只读一次 final report 并立即重算 frontier。
@@ -165,8 +165,8 @@ writes: []
 - lane blocker 是 lane-local：标记该 lane blocked 后重算 ready frontier，继续其他 lanes；
   只有 blocker 支配全部剩余 work 时才问用户或停止。
 - 发现 `create_thread`、`list_threads`、`read_thread` 和 `send_message_to_thread` 用于自动
-  dispatch 与 terminal fan-in。工具不可用时当前 task 继续一条 lane，并输出其他 ready
-  lanes 的 durable packets，不假装已有并发。
+  dispatch 与 terminal fan-in。工具不可用时输出所有 ready lanes 的 durable packets，
+  coordinator 不亲自执行任何 lane，不假装已有并发。
 - 不要调用或复制 cc-dev workflow。它的 child-thread mechanics 只作参考；本 skill
   有自己的 gates，且没有 `task.md` contract。
 
